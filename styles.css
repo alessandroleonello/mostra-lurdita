@@ -1725,3 +1725,74 @@ body.fullscreen-projection .projection-table-wrap {
     justify-content: center;
   }
 }
+
+/* ==========================================================================
+   NOVO FLUXO DE DUELO: CÓDIGO DA SALA (4 DÍGITOS) & INPUT ARCADE
+   ========================================================================== */
+.arcade-code-box {
+  background: #081a2c;
+  border: 3px solid #38bdf8;
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin: 14px auto 18px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.25), inset 0 2px 8px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  position: relative;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.code-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-pixel);
+  font-size: 0.72rem;
+  color: #7dd3fc;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.code-display {
+  font-family: var(--font-pixel);
+  font-size: 2.6rem;
+  letter-spacing: 12px;
+  color: #ffc83b;
+  text-shadow: 0 0 16px rgba(255, 200, 59, 0.75), 0 3px 0 #b45309;
+  padding: 6px 0;
+  user-select: all;
+  -webkit-user-select: all;
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px dashed #0284c7;
+  border-radius: 8px;
+  margin: 6px 0;
+}
+
+.code-helper {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.arcade-code-input {
+  font-family: var(--font-pixel) !important;
+  font-size: 1.7rem !important;
+  letter-spacing: 10px !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  color: #0f172a !important;
+  background: #f8fafc !important;
+  border: 3px solid #38bdf8 !important;
+  box-shadow: 0 4px 0 #0284c7 !important;
+  padding: 12px 14px !important;
+}
+
+.arcade-code-input:focus {
+  border-color: #f59e0b !important;
+  box-shadow: 0 4px 0 #b45309, 0 0 16px rgba(245, 158, 11, 0.3) !important;
+  outline: none;
+}

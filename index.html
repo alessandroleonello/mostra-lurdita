@@ -133,6 +133,46 @@
             </section>
 
             <!-- =================================================================
+           TELA 2.5: ESCOLHA DO DUELO (CRIAR OU ENTRAR)
+           ================================================================= -->
+            <section id="screen-duel-mode" class="screen">
+                <div class="main-card arcade-cabinet-card">
+                    <div class="hero-badge arcade-badge-blink"
+                        style="background:#e0f2fe; color:#0369a1; border-color:#7dd3fc;">
+                        <span>⚔️</span> 2 PLAYERS VERSUS
+                    </div>
+                    <h2 class="hero-title arcade-title-neon" style="font-size: 2rem;">MODO DUELO</h2>
+                    <p class="hero-description" style="margin-bottom: 16px;">
+                        Escolha se você quer criar um novo duelo ou entrar na sala de um colega:
+                    </p>
+
+                    <div class="mode-selection-grid">
+                        <!-- Card Criar Duelo -->
+                        <div class="mode-card mode-duel arcade-mode-btn" id="card-duel-create">
+                            <span class="mode-badge pixel-badge" style="background:#f59e0b; color:#1e1302;">HOST</span>
+                            <span class="mode-icon">👑</span>
+                            <h3>CRIAR NOVO DUELO</h3>
+                            <p>Gera um código exclusivo de 4 dígitos para passar ao outro aluno!</p>
+                            <div class="arcade-select-indicator">▶ PRESS TO CREATE</div>
+                        </div>
+
+                        <!-- Card Entrar em Duelo -->
+                        <div class="mode-card mode-duel arcade-mode-btn" id="card-duel-join">
+                            <span class="mode-badge pixel-badge" style="background:#10b981; color:#fff;">JOIN</span>
+                            <span class="mode-icon">🎯</span>
+                            <h3>ENTRAR EM UM DUELO</h3>
+                            <p>Digite o código de 4 dígitos gerado pelo seu colega para desafiá-lo!</p>
+                            <div class="arcade-select-indicator">▶ PRESS TO JOIN</div>
+                        </div>
+                    </div>
+
+                    <button id="btn-back-from-duel-mode" class="btn-back arcade-back-btn">
+                        ◀ Voltar para Escolha de Modo
+                    </button>
+                </div>
+            </section>
+
+            <!-- =================================================================
            TELA 3: CADASTRO DO JOGADOR (Nome e Escola)
            ================================================================= -->
             <section id="screen-register" class="screen">
@@ -143,10 +183,21 @@
 
                     <h2 class="hero-title arcade-title-neon" style="font-size: 1.9rem; margin-bottom: 8px;"
                         id="register-title">INSIRA SEU NICKNAME</h2>
-                    <p class="hero-description" style="margin-bottom: 22px;">Digite seu nome e escolha sua escola para
+                    <p class="hero-description" id="register-desc" style="margin-bottom: 22px;">Digite seu nome e escolha sua escola para
                         entrar na disputa!</p>
 
                     <form id="form-player-register" onsubmit="return false;">
+                        <!-- Campo do Código de 4 dígitos (exibido apenas ao entrar em um duelo existente) -->
+                        <div class="form-group arcade-form-group" id="group-duel-code" style="display: none;">
+                            <label for="input-duel-code">CÓDIGO DO DUELO (4 DÍGITOS):</label>
+                            <input type="text" id="input-duel-code" class="form-control arcade-input arcade-code-input"
+                                placeholder="EX: A7B2" maxlength="4" autocomplete="off" autocorrect="off"
+                                autocapitalize="characters" spellcheck="false">
+                            <span class="form-helper" style="display:block; margin-top:6px; font-size:0.85rem; color:var(--text-muted);">
+                                📢 Digite o código de 4 dígitos (letras e números) gerado pelo primeiro aluno.
+                            </span>
+                        </div>
+
                         <div class="form-group arcade-form-group">
                             <label for="input-player-name">SEU NOME / APELIDO GAMER:</label>
                             <input type="text" id="input-player-name" class="form-control arcade-input"
@@ -222,6 +273,18 @@
                         Aguardando o Player 2 conectar na arena...
                     </p>
 
+                    <!-- Caixa de Código do Duelo Arcade (4 Dígitos) -->
+                    <div class="arcade-code-box" id="lobby-code-box">
+                        <div class="code-box-header">
+                            <span class="code-icon">🔑</span>
+                            <span class="code-title">CÓDIGO DESTE DUELO</span>
+                        </div>
+                        <div class="code-display" id="lobby-code-display">----</div>
+                        <p class="code-helper" id="lobby-code-helper">
+                            Passe este código de 4 dígitos para o seu oponente digitar no outro tablet!
+                        </p>
+                    </div>
+
                     <div class="lobby-box arcade-versus-box">
                         <div class="lobby-pulse" id="lobby-pulse-icon">
                             ⚡
@@ -230,7 +293,7 @@
                         <div class="lobby-players-grid">
                             <!-- Jogador 1 -->
                             <div class="lobby-player-card ready arcade-fighter-card" id="card-lobby-p1">
-                                <div class="p-role pixel-text">PLAYER 1</div>
+                                <div class="p-role pixel-text">PLAYER 1 (HOST)</div>
                                 <div class="p-name" id="lobby-p1-name">Aguardando...</div>
                                 <div class="p-school" id="lobby-p1-school">-</div>
                             </div>
@@ -239,7 +302,7 @@
 
                             <!-- Jogador 2 -->
                             <div class="lobby-player-card arcade-fighter-card" id="card-lobby-p2">
-                                <div class="p-role pixel-text">PLAYER 2</div>
+                                <div class="p-role pixel-text">PLAYER 2 (CHALLENGER)</div>
                                 <div class="p-name" id="lobby-p2-name">Aguardando entrada...</div>
                                 <div class="p-school" id="lobby-p2-school">-</div>
                             </div>
@@ -299,7 +362,7 @@
                     <!-- Alerta de Duelo (quando em modo 2 jogadores) -->
                     <div class="quiz-duel-status-bar arcade-duel-bar" id="quiz-duel-indicator">
                         ⚔️ <strong>VERSUS BATTLE:</strong> Você vs <span id="quiz-opponent-name">Oponente</span>!
-                        Responda rápido para somar mais pontos!
+                        <span id="quiz-duel-code-badge" style="display: inline-block; margin-left: 8px; font-family: var(--font-pixel); font-size: 0.8rem; background: rgba(0, 0, 0, 0.3); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.4);">SALA: <strong id="quiz-room-code-tag">----</strong></span>
                     </div>
 
                     <!-- Card da Questão Arcade -->

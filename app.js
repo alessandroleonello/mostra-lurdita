@@ -708,6 +708,7 @@ window.addEventListener('resize', () => {
 const gameState = {
   currentScreen: 'screen-home',
   mode: 'solo', // 'solo' ou 'duel'
+  duelSubMode: 'create', // 'create' ou 'join'
   player: {
     name: '',
     school: '',
@@ -728,7 +729,7 @@ const gameState = {
     totalSeconds: 0
   },
   duel: {
-    roomCode: 'SALA_FEIRA_LURDITA',
+    roomCode: '',
     roomRef: null,
     isPlayer1: false,
     player1Data: null,
@@ -1402,80 +1403,167 @@ async function fetchDuelRankings() {
 }
 
 /* --------------------------------------------------------------------------
-   12. SINCRONIZAÇÃO EM TEMPO REAL DO MODO 2 JOGADORES (DUELO)
+   12. SINCRONIZAÇÃO EM TEMPO REAL DO MODO 2 JOGADORES (DUELO COM CÓDIGO DE 4 DÍGITOS)
    -------------------------------------------------------------------------- */
-async function enterDuelLobby() {
-  showScreen('screen-lobby');
-  sounds.click();
 
+// Gera código alfanumérico compacto de 4 dígitos (ex: K7P2)
+function generateRoomCode() {
+  const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // 32 caracteres nítidos (sem 0/O, 1/I)
+  let code = '';
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// Garante que o código de 4 dígitos não colida com outra sala ativa
+async function generateUniqueRoomCode() {
+  for (let i = 0; i < 6; i++) {
+    const code = generateRoomCode();
+    if (isFirebaseConnected && db) {
+      try {
+        const snap = await db.collection("salas_duelo").doc(code).get();
+        if (!snap.exists) return code;
+        const data = snap.data();
+        if (Date.now() - (data.updatedAt || 0) > 900000) return code;
+      } catch (e) {
+        return code;
+      }
+    } else {
+      const local = localStorage.getItem('lurdita_room_' + code);
+      if (!local) return code;
+    }
+  }
+  return generateRoomCode();
+}
+
+// Entra no Lobby de Duelo (Ação: 'create' ou 'join')
+async function enterDuelLobby(action, enteredCode) {
   const pName = gameState.player.name;
   const pSchool = gameState.player.school;
   const pGrade = gameState.player.grade;
   const pId = gameState.player.id;
 
-  document.getElementById('lobby-heading').textContent = "Conectando à Sala de Duelo...";
-  document.getElementById('lobby-subheading').textContent = "Verificando se há outro estudante aguardando...";
+  if (action === 'create') {
+    gameState.duel.isPlayer1 = true;
+    const roomCode = await generateUniqueRoomCode();
+    gameState.duel.roomCode = roomCode;
+  } else {
+    gameState.duel.isPlayer1 = false;
+    gameState.duel.roomCode = (enteredCode || '').trim().toUpperCase();
+  }
+
+  const code = gameState.duel.roomCode;
+  
+  // Atualiza elementos visuais do Lobby com o código de 4 dígitos
+  const codeDisplayEl = document.getElementById('lobby-code-display');
+  if (codeDisplayEl) codeDisplayEl.textContent = code;
+
   document.getElementById('lobby-ready-actions').style.display = 'none';
 
-  if (isFirebaseConnected && db) {
-    await joinFirestoreLobby(pName, pSchool, pGrade, pId);
+  if (action === 'create') {
+    document.getElementById('lobby-heading').textContent = "SALA CRIADA! PROCURANDO OPONENTE...";
+    document.getElementById('lobby-subheading').textContent = `Código gerado: [ ${code} ]. Aguardando o Player 2 conectar...`;
+    document.getElementById('lobby-code-helper').textContent = "📢 Passe este código de 4 dígitos para o outro aluno digitar no tablet dele!";
+    document.getElementById('lobby-p1-name').textContent = pName;
+    document.getElementById('lobby-p1-school').textContent = `${pSchool}${pGrade ? ' • ' + pGrade : ''}`;
+    document.getElementById('lobby-p2-name').textContent = "Aguardando entrada...";
+    document.getElementById('lobby-p2-school').textContent = "-";
+    document.getElementById('card-lobby-p2').classList.remove('ready');
   } else {
-    joinLocalLobby(pName, pSchool, pGrade, pId);
+    document.getElementById('lobby-heading').textContent = "Conectando ao Duelo...";
+    document.getElementById('lobby-subheading').textContent = `Buscando sala [ ${code} ]...`;
+    document.getElementById('lobby-code-helper').textContent = "Validando código com a arena...";
+  }
+
+  showScreen('screen-lobby');
+  sounds.click();
+
+  if (isFirebaseConnected && db) {
+    const success = await joinFirestoreLobby(pName, pSchool, pGrade, pId, action, code);
+    if (!success) {
+      showScreen('screen-register');
+    }
+  } else {
+    const success = joinLocalLobby(pName, pSchool, pGrade, pId, action, code);
+    if (!success) {
+      showScreen('screen-register');
+    }
   }
 }
 
 // Sala via Firestore em Tempo Real
-async function joinFirestoreLobby(name, school, grade, id) {
-  const roomDocRef = db.collection("salas_duelo").doc(gameState.duel.roomCode);
+async function joinFirestoreLobby(name, school, grade, id, action, code) {
+  const roomDocRef = db.collection("salas_duelo").doc(code);
   gameState.duel.roomRef = roomDocRef;
-
-  const snap = await roomDocRef.get();
-  const roomData = snap.exists ? snap.data() : null;
-
   const now = Date.now();
-  // Se a sala não existe ou expirou/já finalizou há mais de 10 minutos
-  const isRoomAvailable = roomData && 
-                          roomData.status === 'waiting' && 
-                          roomData.player1 && 
-                          roomData.player1.id !== id &&
-                          (now - (roomData.updatedAt || now)) < 300000;
 
-  if (!isRoomAvailable) {
-    // SOU O JOGADOR 1 (Criador da Sala)
+  if (action === 'create') {
     gameState.duel.isPlayer1 = true;
     const questions = prepareQuestions(); // Sorteia as perguntas para a partida
 
-    await roomDocRef.set({
-      status: 'waiting',
-      updatedAt: now,
-      questions: questions,
-      player1: {
-        id: id,
-        name: name,
-        school: school,
-        grade: grade || '',
-        score: null,
-        timeSeconds: null,
-        finished: false
-      },
-      player2: null
-    });
+    try {
+      await roomDocRef.set({
+        roomCode: code,
+        status: 'waiting',
+        createdAt: now,
+        updatedAt: now,
+        questions: questions,
+        player1: {
+          id: id,
+          name: name,
+          school: school,
+          grade: grade || '',
+          score: null,
+          timeSeconds: null,
+          finished: false
+        },
+        player2: null
+      });
+    } catch (err) {
+      console.error("Erro ao criar sala no Firestore:", err);
+      alert("Erro ao criar sala online. Usando modo de rede local.");
+      return joinLocalLobby(name, school, grade, id, action, code);
+    }
   } else {
-    // SOU O JOGADOR 2 (Entrando na sala já aberta)
-    gameState.duel.isPlayer1 = false;
-    await roomDocRef.update({
-      status: 'ready',
-      updatedAt: now,
-      player2: {
-        id: id,
-        name: name,
-        school: school,
-        grade: grade || '',
-        score: null,
-        timeSeconds: null,
-        finished: false
+    // ENTRAR EM SALA EXISTENTE (PLAYER 2)
+    try {
+      const snap = await roomDocRef.get();
+      if (!snap.exists) {
+        alert(`❌ Sala com código "${code}" não foi encontrada!\nVerifique se o código de 4 dígitos foi digitado corretamente.`);
+        return false;
       }
-    });
+
+      const roomData = snap.data();
+      if (roomData.status !== 'waiting' || roomData.player2) {
+        alert(`⚠️ A sala "${code}" já começou ou já possui 2 participantes.`);
+        return false;
+      }
+
+      if (now - (roomData.updatedAt || now) > 900000) {
+        alert(`⚠️ A sala "${code}" expirou. Peça ao Player 1 para criar uma nova.`);
+        return false;
+      }
+
+      gameState.duel.isPlayer1 = false;
+      await roomDocRef.update({
+        status: 'ready',
+        updatedAt: now,
+        player2: {
+          id: id,
+          name: name,
+          school: school,
+          grade: grade || '',
+          score: null,
+          timeSeconds: null,
+          finished: false
+        }
+      });
+    } catch (err) {
+      console.error("Erro ao entrar na sala Firestore:", err);
+      alert("Erro ao conectar à sala online. Verifique sua conexão.");
+      return false;
+    }
   }
 
   // Escuta alterações em tempo real via snapshot
@@ -1485,56 +1573,70 @@ async function joinFirestoreLobby(name, school, grade, id) {
     const data = docSnapshot.data();
     onRoomStateUpdate(data);
   });
+
+  return true;
 }
 
-// Fallback de Sala Local / BroadcastChannel para tablets ou demonstrações na mesma rede
-function joinLocalLobby(name, school, grade, id) {
-  let localRoom = null;
-  try {
-    const raw = localStorage.getItem('lurdita_active_room');
-    localRoom = raw ? JSON.parse(raw) : null;
-  } catch (e) {}
-
+// Fallback de Sala Local / BroadcastChannel para tablets ou testes no mesmo navegador
+function joinLocalLobby(name, school, grade, id, action, code) {
+  const key = 'lurdita_room_' + code;
   const now = Date.now();
-  const isAvailable = localRoom && 
-                      localRoom.status === 'waiting' && 
-                      localRoom.player1 && 
-                      localRoom.player1.id !== id &&
-                      (now - localRoom.updatedAt < 60000);
 
-  if (!isAvailable) {
+  if (action === 'create') {
     gameState.duel.isPlayer1 = true;
     const questions = prepareQuestions();
-    localRoom = {
+    const localRoom = {
+      roomCode: code,
       status: 'waiting',
+      createdAt: now,
       updatedAt: now,
       questions: questions,
       player1: { id, name, school, grade: grade || '', score: null, timeSeconds: null, finished: false },
       player2: null
     };
-    localStorage.setItem('lurdita_active_room', JSON.stringify(localRoom));
+    localStorage.setItem(key, JSON.stringify(localRoom));
     broadcastLocalRoom(localRoom);
     onRoomStateUpdate(localRoom);
+    return true;
   } else {
+    let localRoom = null;
+    try {
+      const raw = localStorage.getItem(key);
+      localRoom = raw ? JSON.parse(raw) : null;
+    } catch (e) {}
+
+    if (!localRoom) {
+      alert(`❌ Sala local com código "${code}" não foi encontrada!\nVerifique se o primeiro aluno já criou a sala.`);
+      return false;
+    }
+
+    if (localRoom.status !== 'waiting' || localRoom.player2) {
+      alert(`⚠️ A sala "${code}" já começou ou já possui 2 participantes.`);
+      return false;
+    }
+
     gameState.duel.isPlayer1 = false;
     localRoom.status = 'ready';
     localRoom.updatedAt = now;
     localRoom.player2 = { id, name, school, grade: grade || '', score: null, timeSeconds: null, finished: false };
-    localStorage.setItem('lurdita_active_room', JSON.stringify(localRoom));
+    localStorage.setItem(key, JSON.stringify(localRoom));
     broadcastLocalRoom(localRoom);
     onRoomStateUpdate(localRoom);
+    return true;
   }
 }
 
 function broadcastLocalRoom(roomData) {
-  if (broadcastChannel) {
-    broadcastChannel.postMessage({ type: 'ROOM_UPDATE', data: roomData });
+  if (broadcastChannel && roomData && roomData.roomCode) {
+    broadcastChannel.postMessage({ type: 'ROOM_UPDATE', roomCode: roomData.roomCode, data: roomData });
   }
 }
 
 function handleBroadcastMessage(event) {
   if (event.data && event.data.type === 'ROOM_UPDATE') {
-    onRoomStateUpdate(event.data.data);
+    if (gameState.duel.roomCode && event.data.roomCode === gameState.duel.roomCode) {
+      onRoomStateUpdate(event.data.data);
+    }
   } else if (event.data && event.data.type === 'RANKING_UPDATE') {
     if (gameState.currentScreen === 'screen-rankings') {
       loadRankingsUI();
@@ -1546,10 +1648,21 @@ function handleBroadcastMessage(event) {
 function onRoomStateUpdate(data) {
   if (!data) return;
 
+  const roomCode = data.roomCode || gameState.duel.roomCode;
   const p1 = data.player1;
   const p2 = data.player2;
 
-  // Atualiza visual do Lobby
+  // Atualiza visual do código da sala no Lobby e no HUD
+  const codeEl = document.getElementById('lobby-code-display');
+  if (codeEl && roomCode) {
+    codeEl.textContent = roomCode;
+  }
+  const quizRoomTag = document.getElementById('quiz-room-code-tag');
+  if (quizRoomTag && roomCode) {
+    quizRoomTag.textContent = roomCode;
+  }
+
+  // Atualiza visual dos Jogadores no Lobby
   if (p1) {
     document.getElementById('lobby-p1-name').textContent = p1.name;
     document.getElementById('lobby-p1-school').textContent = `${p1.school}${p1.grade ? ' • ' + p1.grade : ''}`;
@@ -1567,18 +1680,20 @@ function onRoomStateUpdate(data) {
   // Status da sala
   if (data.status === 'waiting') {
     document.getElementById('lobby-heading').textContent = "Procurando Oponente...";
-    document.getElementById('lobby-subheading').textContent = "Você está conectado! Aguardando o segundo jogador...";
+    document.getElementById('lobby-subheading').textContent = `Código [ ${roomCode} ] gerado! Aguardando o Player 2 conectar...`;
+    document.getElementById('lobby-code-helper').textContent = "📢 Passe este código de 4 dígitos para o seu oponente digitar no tablet dele!";
     document.getElementById('lobby-ready-actions').style.display = 'none';
   } else if (data.status === 'ready') {
+    sounds.bell();
     document.getElementById('lobby-heading').textContent = "Oponente Conectado! 🎉";
-    document.getElementById('lobby-subheading').textContent = `${p1.name} vs ${p2.name}! Tudo pronto para iniciar!`;
+    document.getElementById('lobby-subheading').textContent = `${p1.name} vs ${p2 ? p2.name : 'Oponente'}! Tudo pronto para iniciar!`;
+    document.getElementById('lobby-code-helper').textContent = "✅ Ambos os estudantes estão na sala! Clique no botão abaixo para iniciar!";
     document.getElementById('lobby-ready-actions').style.display = 'block';
   } else if (data.status === 'playing') {
     if (gameState.currentScreen !== 'screen-quiz') {
       startDuelQuiz(data);
     }
   } else if (data.status === 'finished') {
-    // Ambos finalizaram
     showDuelFinalResult(data);
   }
 
@@ -1600,6 +1715,10 @@ function startDuelQuiz(roomData) {
   const oppName = opp ? opp.name : 'Oponente';
 
   document.getElementById('quiz-opponent-name').textContent = oppName;
+  const quizRoomTag = document.getElementById('quiz-room-code-tag');
+  if (quizRoomTag) {
+    quizRoomTag.textContent = gameState.duel.roomCode || '----';
+  }
   document.getElementById('quiz-duel-indicator').style.display = 'block';
 
   showScreen('screen-quiz');
@@ -1610,6 +1729,7 @@ function startDuelQuiz(roomData) {
 // Envio de finalização do jogador no duelo
 async function submitDuelPlayerFinished(playerStats) {
   const isP1 = gameState.duel.isPlayer1;
+  const code = gameState.duel.roomCode;
 
   if (isFirebaseConnected && db && gameState.duel.roomRef) {
     const updateField = isP1 ? 'player1' : 'player2';
@@ -1621,12 +1741,13 @@ async function submitDuelPlayerFinished(playerStats) {
 
     const snap = await gameState.duel.roomRef.get();
     const data = snap.data();
-    if (data.player1.finished && data.player2 && data.player2.finished) {
+    if (data.player1 && data.player1.finished && data.player2 && data.player2.finished) {
       await gameState.duel.roomRef.update({ status: 'finished' });
     }
   } else {
     // Fallback Local
-    let localRoom = JSON.parse(localStorage.getItem('lurdita_active_room') || '{}');
+    const key = 'lurdita_room_' + code;
+    let localRoom = JSON.parse(localStorage.getItem(key) || '{}');
     if (isP1 && localRoom.player1) {
       localRoom.player1.score = playerStats.score;
       localRoom.player1.timeSeconds = playerStats.timeSeconds;
@@ -1641,7 +1762,7 @@ async function submitDuelPlayerFinished(playerStats) {
       localRoom.status = 'finished';
     }
 
-    localStorage.setItem('lurdita_active_room', JSON.stringify(localRoom));
+    localStorage.setItem(key, JSON.stringify(localRoom));
     broadcastLocalRoom(localRoom);
     onRoomStateUpdate(localRoom);
   }
@@ -1972,26 +2093,88 @@ document.addEventListener('DOMContentLoaded', () => {
     gameState.mode = 'solo';
     document.getElementById('register-badge-mode').innerHTML = '<span>⭐</span> 1 PLAYER (SOLO)';
     document.getElementById('register-title').textContent = 'INSIRA SEU NICKNAME';
+    const regDesc = document.getElementById('register-desc');
+    if (regDesc) regDesc.textContent = 'Digite seu nome e escolha sua escola para entrar na disputa!';
     document.getElementById('btn-register-action-text').textContent = 'START MISSION';
+    document.getElementById('group-duel-code').style.display = 'none';
+    document.getElementById('input-duel-code').required = false;
     showScreen('screen-register');
     handleSchoolSelectChange();
   });
 
-  // Escolha do Modo Duelo
+  // Escolha do Modo Duelo -> Abre tela intermediária com opções "Criar" ou "Entrar"
   document.getElementById('card-mode-duel').addEventListener('click', () => {
     sounds.select();
     gameState.mode = 'duel';
-    document.getElementById('register-badge-mode').innerHTML = '<span>⚔️</span> 2 PLAYERS (VERSUS)';
-    document.getElementById('register-title').textContent = 'INSIRA SEU NICKNAME';
-    document.getElementById('btn-register-action-text').textContent = 'ENTER LOBBY';
-    showScreen('screen-register');
-    handleSchoolSelectChange();
+    showScreen('screen-duel-mode');
   });
 
-  // Voltar do Registro para Modo
+  // Voltar da tela de opções de Duelo para Escolha de Modo
+  const btnBackFromDuel = document.getElementById('btn-back-from-duel-mode');
+  if (btnBackFromDuel) {
+    btnBackFromDuel.addEventListener('click', () => {
+      sounds.click();
+      showScreen('screen-mode');
+    });
+  }
+
+  // Opção: CRIAR UM NOVO DUELO (Player 1 / Host)
+  const cardDuelCreate = document.getElementById('card-duel-create');
+  if (cardDuelCreate) {
+    cardDuelCreate.addEventListener('click', () => {
+      sounds.select();
+      gameState.mode = 'duel';
+      gameState.duelSubMode = 'create';
+      document.getElementById('register-badge-mode').innerHTML = '<span>👑</span> CRIAR NOVO DUELO (PLAYER 1)';
+      document.getElementById('register-title').textContent = 'CRIAR NOVO DUELO';
+      const regDesc = document.getElementById('register-desc');
+      if (regDesc) regDesc.textContent = 'Digite seus dados. Um código de 4 dígitos será gerado para o outro aluno!';
+      document.getElementById('btn-register-action-text').textContent = 'GERAR CÓDIGO E CRIAR SALA';
+      document.getElementById('group-duel-code').style.display = 'none';
+      document.getElementById('input-duel-code').required = false;
+      showScreen('screen-register');
+      handleSchoolSelectChange();
+    });
+  }
+
+  // Opção: ENTRAR EM UM DUELO (Player 2 / Challenger)
+  const cardDuelJoin = document.getElementById('card-duel-join');
+  if (cardDuelJoin) {
+    cardDuelJoin.addEventListener('click', () => {
+      sounds.select();
+      gameState.mode = 'duel';
+      gameState.duelSubMode = 'join';
+      document.getElementById('register-badge-mode').innerHTML = '<span>🎯</span> ENTRAR EM UM DUELO (PLAYER 2)';
+      document.getElementById('register-title').textContent = 'ENTRAR EM UM DUELO';
+      const regDesc = document.getElementById('register-desc');
+      if (regDesc) regDesc.textContent = 'Digite o código de 4 dígitos fornecido pelo seu colega e preencha seus dados!';
+      document.getElementById('btn-register-action-text').textContent = 'ENTRAR NA ARENA ⚔️';
+      document.getElementById('group-duel-code').style.display = 'block';
+      const duelInput = document.getElementById('input-duel-code');
+      duelInput.required = true;
+      duelInput.value = '';
+      showScreen('screen-register');
+      handleSchoolSelectChange();
+      setTimeout(() => duelInput.focus(), 120);
+    });
+  }
+
+  // Formatação automática do input do código de 4 dígitos (Uppercase e sem caracteres estranhos)
+  const inputDuelCode = document.getElementById('input-duel-code');
+  if (inputDuelCode) {
+    inputDuelCode.addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+    });
+  }
+
+  // Voltar do Registro
   document.getElementById('btn-back-to-mode').addEventListener('click', () => {
     sounds.click();
-    showScreen('screen-mode');
+    if (gameState.mode === 'duel') {
+      showScreen('screen-duel-mode');
+    } else {
+      showScreen('screen-mode');
+    }
   });
 
   // Seleção de Escola ("Outra Escola" exibe campo de texto com foco)
@@ -2062,18 +2245,42 @@ document.addEventListener('DOMContentLoaded', () => {
       renderCurrentQuestion();
       startTimer();
     } else {
-      // Entra no lobby de 2 jogadores
-      enterDuelLobby();
+      // Modo Duelo
+      if (gameState.duelSubMode === 'create') {
+        enterDuelLobby('create');
+      } else {
+        const codeVal = (document.getElementById('input-duel-code').value || '').trim().toUpperCase();
+        if (!codeVal || codeVal.length !== 4) {
+          alert("Por favor, digite o código de 4 dígitos do duelo (ex: K7P2).");
+          document.getElementById('input-duel-code').focus();
+          return;
+        }
+        enterDuelLobby('join', codeVal);
+      }
     }
   });
 
   // Botão Sair do Lobby
-  document.getElementById('btn-leave-lobby').addEventListener('click', () => {
+  document.getElementById('btn-leave-lobby').addEventListener('click', async () => {
     sounds.click();
     if (gameState.duel.unsubscribeRoom) {
       gameState.duel.unsubscribeRoom();
+      gameState.duel.unsubscribeRoom = null;
     }
-    showScreen('screen-mode');
+
+    // Se for o host (Player 1) saindo enquanto espera, podemos remover a sala
+    if (gameState.duel.isPlayer1 && gameState.duel.roomCode) {
+      if (isFirebaseConnected && db && gameState.duel.roomRef) {
+        try {
+          await gameState.duel.roomRef.delete();
+        } catch (e) {
+          console.warn("Aviso ao remover sala no Firestore:", e);
+        }
+      }
+      localStorage.removeItem('lurdita_room_' + gameState.duel.roomCode);
+    }
+
+    showScreen('screen-duel-mode');
   });
 
   // Botão Iniciar Duelo no Lobby
@@ -2082,9 +2289,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isFirebaseConnected && db && gameState.duel.roomRef) {
       await gameState.duel.roomRef.update({ status: 'playing' });
     } else {
-      let localRoom = JSON.parse(localStorage.getItem('lurdita_active_room') || '{}');
+      const key = 'lurdita_room_' + gameState.duel.roomCode;
+      let localRoom = JSON.parse(localStorage.getItem(key) || '{}');
       localRoom.status = 'playing';
-      localStorage.setItem('lurdita_active_room', JSON.stringify(localRoom));
+      localStorage.setItem(key, JSON.stringify(localRoom));
       broadcastLocalRoom(localRoom);
       onRoomStateUpdate(localRoom);
     }
@@ -2104,7 +2312,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('btn-duel-play-again').addEventListener('click', () => {
     sounds.click();
-    showScreen('screen-mode');
+    showScreen('screen-duel-mode');
   });
   document.getElementById('btn-duel-home').addEventListener('click', () => {
     sounds.click();
