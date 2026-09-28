@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mostra Nossa Escola, Nossas Criações - PEI Lurdita | Desafio do 1º ao 5º Ano</title>
+
+    <!-- Meta SEO -->
+    <meta name="description"
+        content="Site interativo para a Mostra Nossa Escola, Nossas Criações da PEI Lurdita. Desafio de Matemática e Língua Portuguesa do 1º ao 5º Ano para 1 ou 2 jogadores com ranking em tempo real.">
+    <meta name="author" content="PEI Profª Maria de Lourdes Gentille Stéfano - Lurdita">
+    <meta name="theme-color" content="#134674">
+
+    <!-- Favicon com o logo da escola -->
+    <link rel="icon" type="image/jpeg" href="logo-da-escola.jpg">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Firebase SDKs (Versão 10 Compat via CDN para máxima compatibilidade) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+
+    <!-- Canvas para Chuva de Confetes nos Resultados -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="app-wrapper">
+
+        <!-- Topo / Header da Aplicação -->
+        <header class="main-header arcade-header">
+            <div class="brand-section" id="btn-brand-home" title="Voltar ao início">
+                <img src="logo-da-escola.jpg" alt="Logo da Escola PEI Lurdita" class="school-logo arcade-logo-glow">
+                <div class="brand-text">
+                    <h1>Mostra Nossa Escola, Nossas Criações</h1>
+                    <div class="subtitle"><span class="pixel-pill">ARCADE</span> PEI Lurdita • 1º ao 5º Ano</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="btn-sound-toggle" class="btn-icon-sound arcade-sound-btn"
+                    title="Ligar/Desligar Efeitos Chiptune" aria-label="Efeitos sonoros">
+                    <span id="sound-icon">🔊</span>
+                    <span class="pixel-text">SFX</span>
+                </button>
+                <button id="btn-open-ranking" class="btn-header-ranking arcade-btn-rank">
+                    <span>🏆</span>
+                    <span class="pixel-text">HALL DA FAMA</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Container das Telas Dinâmicas -->
+        <main class="screen-container">
+
+            <!-- =================================================================
+           TELA 1: HOME (Boas-vindas e Botão de Jogar Estilo Arcade)
+           ================================================================= -->
+            <section id="screen-home" class="screen active">
+                <div class="main-card hero-card arcade-cabinet-card">
+                    <div class="arcade-marquee-light">
+                        <span class="marquee-bulb"></span>
+                        <span class="marquee-bulb"></span>
+                        <span class="marquee-bulb"></span>
+                        <span class="marquee-bulb"></span>
+                    </div>
+
+                    <div class="hero-badge arcade-badge-blink">
+                        <span>🪙</span> 1 CREDIT • PRESS START TO PLAY
+                    </div>
+
+                    <h2 class="hero-title arcade-title-neon">
+                        DESAFIO ARCADE <span>PEI LURDITA</span>
+                    </h2>
+
+                    <p class="hero-description arcade-desc">
+                        Entre na arena dos games! Resolva missões de <strong>Matemática</strong> e <strong>Língua
+                            Portuguesa</strong> do <strong>1º ao 5º ano</strong>, faça combos de pontos e conquiste o 1º
+                        lugar no pódio!
+                    </p>
+
+                    <div class="hero-actions">
+                        <button id="btn-start-game" class="btn-primary-large arcade-push-btn pulse-arcade">
+                            <span>🕹️</span> PRESS START
+                        </button>
+                        <button id="btn-home-ranking" class="btn-secondary arcade-btn-secondary">
+                            <span>🏆</span> TABELA DE RECORDES (HIGH SCORES)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================================================================
+           TELA 2: ESCOLHA DO MODO (1P SOLO OU 2P VERSUS)
+           ================================================================= -->
+            <section id="screen-mode" class="screen">
+                <div class="main-card arcade-cabinet-card">
+                    <div class="hero-badge arcade-badge-blink">
+                        <span>🎮</span> SELECT GAME MODE
+                    </div>
+                    <h2 class="hero-title arcade-title-neon" style="font-size: 2rem;">ESCOLHA SEU MODO</h2>
+                    <p class="hero-description" style="margin-bottom: 16px;">Como você vai jogar nesta rodada?</p>
+
+                    <div class="mode-selection-grid">
+                        <!-- Card 1 Jogador -->
+                        <div class="mode-card mode-solo arcade-mode-btn" id="card-mode-solo">
+                            <span class="mode-badge pixel-badge">1 PLAYER</span>
+                            <span class="mode-icon">⭐</span>
+                            <h3>1 JOGADOR (SOLO)</h3>
+                            <p>Desafio individual contra o relógio! Faça combos de acertos e marque seu recorde no
+                                ranking!</p>
+                            <div class="arcade-select-indicator">▶ PRESS TO SELECT</div>
+                        </div>
+
+                        <!-- Card 2 Jogadores -->
+                        <div class="mode-card mode-duel arcade-mode-btn" id="card-mode-duel">
+                            <span class="mode-badge pixel-badge" style="background:#4aa3df; color:#fff;">2
+                                PLAYERS</span>
+                            <span class="mode-icon">⚔️</span>
+                            <h3>2 JOGADORES (VERSUS)</h3>
+                            <p>Batalha ao vivo entre 2 tablets! Quem for mais rápido e acertar mais vence o duelo de
+                                escolas!</p>
+                            <div class="arcade-select-indicator">▶ PRESS TO SELECT</div>
+                        </div>
+                    </div>
+
+                    <button id="btn-back-to-home" class="btn-back arcade-back-btn">
+                        ◀ Voltar ao Menu Principal
+                    </button>
+                </div>
+            </section>
+
+            <!-- =================================================================
+           TELA 3: CADASTRO DO JOGADOR (Nome e Escola)
+           ================================================================= -->
+            <section id="screen-register" class="screen">
+                <div class="main-card arcade-cabinet-card">
+                    <div class="hero-badge" id="register-badge-mode">
+                        <span>👤</span> PLAYER 1 READY
+                    </div>
+
+                    <h2 class="hero-title arcade-title-neon" style="font-size: 1.9rem; margin-bottom: 8px;"
+                        id="register-title">INSIRA SEU NICKNAME</h2>
+                    <p class="hero-description" style="margin-bottom: 22px;">Digite seu nome e escolha sua escola para
+                        entrar na disputa!</p>
+
+                    <form id="form-player-register" onsubmit="return false;">
+                        <div class="form-group arcade-form-group">
+                            <label for="input-player-name">SEU NOME / APELIDO GAMER:</label>
+                            <input type="text" id="input-player-name" class="form-control arcade-input"
+                                placeholder="Ex: Gabriel Silva" maxlength="28" required autocomplete="off">
+                        </div>
+
+                        <div class="form-group arcade-form-group">
+                            <label for="select-player-school">SUA ESCOLA (EQUIPE):</label>
+                            <select id="select-player-school" class="form-control arcade-input" required>
+                                <option value="" disabled selected>Selecione sua escola...</option>
+                                <option value="PEI Lurdita">PEI Lurdita</option>
+                                <option value="PEI Valentim Gentil">PEI Valentim Gentil</option>
+                                <option value="PEI Teófila">PEI Teófila</option>
+                                <option value="Chico Arruda">Chico Arruda</option>
+                                <option value="Moraes Barros">Moraes Barros</option>
+                                <option value="Nilton Próspero">Nilton Próspero</option>
+                                <option value="Loide Portolaine">Loide Portolaine</option>
+                                <option value="Toledo">Toledo</option>
+                                <option value="Cei Fundecitrus">Cei Fundecitrus</option>
+                                <option value="Outra Escola">Outra Escola</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group arcade-form-group" id="group-custom-school" style="display: none;">
+                            <label for="input-custom-school">NOME DA SUA ESCOLA:</label>
+                            <input type="text" id="input-custom-school" class="form-control arcade-input"
+                                placeholder="Digite o nome da sua escola...">
+                        </div>
+
+                        <div class="form-group arcade-form-group">
+                            <label for="select-player-grade">ANO / SÉRIE ESCOLAR:</label>
+                            <select id="select-player-grade" class="form-control arcade-input" required>
+                                <option value="" disabled selected>Selecione seu ano / série...</option>
+                                <option value="1º Ano">1º Ano</option>
+                                <option value="2º Ano">2º Ano</option>
+                                <option value="3º Ano">3º Ano</option>
+                                <option value="4º Ano">4º Ano</option>
+                                <option value="5º Ano">5º Ano</option>
+                                <option value="6º Ano">6º Ano</option>
+                                <option value="7º Ano">7º Ano</option>
+                                <option value="8º Ano">8º Ano</option>
+                                <option value="9º Ano">9º Ano</option>
+                            </select>
+                        </div>
+
+                        <div
+                            style="display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 14px;">
+                            <button type="submit" id="btn-submit-register" class="btn-primary-large arcade-push-btn"
+                                style="width: 100%;">
+                                <span>🕹️</span> <span id="btn-register-action-text">START MISSION</span>
+                            </button>
+                            <button type="button" id="btn-back-to-mode" class="btn-back arcade-back-btn">
+                                ◀ Voltar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- =================================================================
+           TELA 4: LOBBY DE ESPERA (Apenas para 2 Jogadores)
+           ================================================================= -->
+            <section id="screen-lobby" class="screen">
+                <div class="main-card arcade-cabinet-card">
+                    <div class="hero-badge arcade-badge-blink"
+                        style="background:#e0f2fe; color:#0369a1; border-color:#7dd3fc;">
+                        <span>⚔️</span> VERSUS MATCHMAKING
+                    </div>
+
+                    <h2 class="hero-title arcade-title-neon" id="lobby-heading" style="font-size: 1.85rem;">PROCURANDO
+                        OPONENTE...</h2>
+                    <p class="hero-description" id="lobby-subheading" style="margin-bottom: 12px;">
+                        Aguardando o Player 2 conectar na arena...
+                    </p>
+
+                    <div class="lobby-box arcade-versus-box">
+                        <div class="lobby-pulse" id="lobby-pulse-icon">
+                            ⚡
+                        </div>
+
+                        <div class="lobby-players-grid">
+                            <!-- Jogador 1 -->
+                            <div class="lobby-player-card ready arcade-fighter-card" id="card-lobby-p1">
+                                <div class="p-role pixel-text">PLAYER 1</div>
+                                <div class="p-name" id="lobby-p1-name">Aguardando...</div>
+                                <div class="p-school" id="lobby-p1-school">-</div>
+                            </div>
+
+                            <div class="lobby-vs-badge arcade-vs-badge">VS</div>
+
+                            <!-- Jogador 2 -->
+                            <div class="lobby-player-card arcade-fighter-card" id="card-lobby-p2">
+                                <div class="p-role pixel-text">PLAYER 2</div>
+                                <div class="p-name" id="lobby-p2-name">Aguardando entrada...</div>
+                                <div class="p-school" id="lobby-p2-school">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="lobby-ready-actions" style="display: none; width: 100%;">
+                        <button id="btn-start-duel" class="btn-primary-large arcade-push-btn pulse-arcade"
+                            style="width: 100%; max-width: 100%;">
+                            <span>🔥</span> READY... FIGHT! (INICIAR DUELO)
+                        </button>
+                    </div>
+
+                    <button id="btn-leave-lobby" class="btn-back arcade-back-btn" style="margin-top: 14px;">
+                        ◀ Cancelar e sair da sala
+                    </button>
+                </div>
+            </section>
+
+            <!-- =================================================================
+           TELA 5: ARENA DO QUIZ (HUD ARCADE COM PONTOS, COMBOS E CRONÔMETRO)
+           ================================================================= -->
+            <section id="screen-quiz" class="screen">
+                <div class="main-card arcade-cabinet-card" style="max-width: 820px;">
+
+                    <!-- Arcade Floating Popup para Pontuação -->
+                    <div id="arcade-floating-popup" class="arcade-popup-toast"></div>
+
+                    <!-- Barra de Informações HUD Arcade do Quiz -->
+                    <div class="arcade-hud-bar">
+                        <div class="hud-item hud-stage">
+                            <span class="hud-label">STAGE</span>
+                            <span class="hud-val" id="quiz-question-counter">1/10</span>
+                        </div>
+
+                        <div class="hud-item hud-score">
+                            <span class="hud-label">SCORE</span>
+                            <span class="hud-val" id="arcade-score-display">000000</span>
+                        </div>
+
+                        <div class="hud-item hud-combo">
+                            <span class="hud-label">COMBO</span>
+                            <span class="hud-val" id="arcade-combo-display">x1 🔥</span>
+                        </div>
+
+                        <div class="hud-item hud-timer">
+                            <span class="hud-label">TIME</span>
+                            <span class="hud-val" id="quiz-timer-display">00:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Progresso Visual de Energia do Arcade -->
+                    <div class="quiz-progress-bar-container arcade-energy-bar">
+                        <div class="quiz-progress-bar-fill" id="quiz-progress-fill"></div>
+                    </div>
+
+                    <!-- Alerta de Duelo (quando em modo 2 jogadores) -->
+                    <div class="quiz-duel-status-bar arcade-duel-bar" id="quiz-duel-indicator">
+                        ⚔️ <strong>VERSUS BATTLE:</strong> Você vs <span id="quiz-opponent-name">Oponente</span>!
+                        Responda rápido para somar mais pontos!
+                    </div>
+
+                    <!-- Card da Questão Arcade -->
+                    <div class="question-card arcade-question-card">
+                        <span class="question-tag arcade-mission-tag" id="question-category">Missão do
+                            Conhecimento</span>
+                        <h3 class="question-text arcade-question-text" id="question-text">
+                            Carregando enunciado da questão...
+                        </h3>
+                    </div>
+
+                    <!-- Alternativas A, B, C, D como Botões de Fliperama -->
+                    <div class="options-grid" id="options-container">
+                        <!-- Preenchido via Javascript -->
+                    </div>
+
+                    <div class="quiz-footer arcade-quiz-footer">
+                        <div class="arcade-hint" id="quiz-feedback-hint">
+                            🕹️ Toque em uma alternativa para responder!
+                        </div>
+                        <div id="quiz-auto-advance-bar-wrap" class="auto-advance-bar-wrapper" style="display: none;">
+                            <div class="auto-advance-bar-fill" id="quiz-auto-advance-fill"></div>
+                        </div>
+                        <button id="btn-next-question" class="btn-primary-large arcade-push-btn" style="display: none;"
+                            disabled>
+                            Próxima ➔
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- =================================================================
+           TELA 6: RESULTADO 1 JOGADOR (STAGE CLEAR ARCADE)
+           ================================================================= -->
+            <section id="screen-result-solo" class="screen">
+                <div class="main-card arcade-cabinet-card">
+                    <div class="arcade-stage-clear-badge">★ STAGE CLEAR! ★</div>
+                    <div class="result-trophy arcade-trophy-bounce" id="result-solo-trophy">🏆</div>
+                    <h2 class="result-title arcade-title-neon" id="result-solo-title">MISSION COMPLETE!</h2>
+                    <p class="result-subtitle" id="result-solo-player-info">Gamer info...</p>
+
+                    <div class="stats-grid arcade-stats-grid">
+                        <div class="stat-card arcade-stat-card">
+                            <div class="stat-value" id="stat-solo-score">0/10</div>
+                            <div class="stat-label">Acertos</div>
+                        </div>
+                        <div class="stat-card arcade-stat-card">
+                            <div class="stat-value" id="stat-solo-pts" style="color: var(--accent-gold);">0 PTS</div>
+                            <div class="stat-label">Score Arcade</div>
+                        </div>
+                        <div class="stat-card arcade-stat-card">
+                            <div class="stat-value" id="stat-solo-time">00:00</div>
+                            <div class="stat-label">Tempo Total</div>
+                        </div>
+                        <div class="stat-card arcade-stat-card">
+                            <div class="stat-value" id="stat-solo-rank">#--</div>
+                            <div class="stat-label">Posição High Score</div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 20px;">
+                        <button id="btn-solo-view-rankings" class="btn-primary-large arcade-push-btn">
+                            <span>🏆</span> TABELA DE RECORDES
+                        </button>
+                        <button id="btn-solo-play-again" class="btn-secondary arcade-btn-secondary">
+                            <span>🔄</span> JOGAR NOVAMENTE (REPLAY)
+                        </button>
+                        <button id="btn-solo-home" class="btn-back arcade-back-btn">
+                            ◀ Menu Principal
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================================================================
+           TELA 7: RESULTADO 2 JOGADORES (VERSUS BATTLE RESULT)
+           ================================================================= -->
+            <section id="screen-result-duel" class="screen">
+                <div class="main-card arcade-cabinet-card">
+
+                    <!-- Estado de Aguardando o Oponente Finalizar -->
+                    <div id="duel-waiting-opponent" style="display: none;">
+                        <div class="lobby-pulse" style="margin: 0 auto 20px;">⏳</div>
+                        <div class="arcade-stage-clear-badge">AGUARDANDO FINALIZAÇÃO...</div>
+                        <h2 class="result-title arcade-title-neon">VOCÊ COMPLETOU!</h2>
+                        <p class="result-subtitle">
+                            Aguardando o segundo jogador terminar para revelar o grande campeão da arena...
+                        </p>
+                        <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: 10px;">
+                            O resultado piscará automaticamente em ambas as telas!
+                        </p>
+                    </div>
+
+                    <!-- Estado de Resultado Final com o Vencedor -->
+                    <div id="duel-final-result" style="display: block;">
+                        <div class="arcade-stage-clear-badge">★ K.O.! TEMOS UM CAMPEÃO! ★</div>
+                        <div class="result-trophy arcade-trophy-bounce" id="duel-trophy-icon">🏆</div>
+                        <h2 class="result-title arcade-title-neon" id="duel-winner-title">TEMOS UM VENCEDOR!</h2>
+                        <p class="result-subtitle" id="duel-winner-subtitle">
+                            Vitória da escola representante!
+                        </p>
+
+                        <div class="duel-versus-result arcade-versus-box">
+                            <div class="duel-players-comparison">
+
+                                <!-- Jogador 1 -->
+                                <div class="duel-player-res arcade-fighter-card" id="duel-card-p1">
+                                    <div class="res-crown" id="p1-crown">👑</div>
+                                    <div class="res-name" id="duel-res-p1-name">Jogador 1</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="duel-res-p1-school">
+                                        Escola 1</div>
+                                    <div class="res-score" id="duel-res-p1-stats">Acertos: 9/10 • 01:20</div>
+                                </div>
+
+                                <div class="lobby-vs-badge arcade-vs-badge">VS</div>
+
+                                <!-- Jogador 2 -->
+                                <div class="duel-player-res arcade-fighter-card" id="duel-card-p2">
+                                    <div class="res-crown" id="p2-crown">👑</div>
+                                    <div class="res-name" id="duel-res-p2-name">Jogador 2</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="duel-res-p2-school">
+                                        Escola 2</div>
+                                    <div class="res-score" id="duel-res-p2-stats">Acertos: 7/10 • 01:45</div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div
+                            style="display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 20px;">
+                            <button id="btn-duel-view-rankings" class="btn-primary-large arcade-push-btn">
+                                <span>⚔️</span> TABELA DE RECORDES DOS DUELOS
+                            </button>
+                            <button id="btn-duel-play-again" class="btn-secondary arcade-btn-secondary">
+                                <span>🔄</span> NOVO DUELO (REMATCH)
+                            </button>
+                            <button id="btn-duel-home" class="btn-back arcade-back-btn">
+                                ◀ Menu Principal
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- =================================================================
+           TELA 8: RANKINGS (PAINEL AO VIVO PARA PROJEÇÃO NA PAREDE)
+           ================================================================= -->
+            <section id="screen-rankings" class="screen">
+                <div class="main-card rankings-card projection-card">
+
+                    <!-- Topo do Painel de Projeção -->
+                    <div class="projection-header">
+                        <div>
+                            <div class="live-pill">
+                                <span class="live-dot"></span>
+                                <span>PAINEL AO VIVO • ATUALIZAÇÃO EM TEMPO REAL</span>
+                            </div>
+                            <h2 class="hero-title projection-title">🏆 Classificação da Mostra</h2>
+                            <p class="projection-sub">
+                                PEI Lurdita • Desafio do 1º ao 5º Ano (Matemática & Língua Portuguesa)
+                            </p>
+                        </div>
+
+                        <div class="projection-controls">
+                            <button id="btn-reset-rankings" class="btn-projection-action btn-danger-action"
+                                title="Zerar todas as tabelas de classificação">
+                                <span>🗑️</span>
+                                <span>Zerar Tabelas</span>
+                            </button>
+                            <button id="btn-fullscreen-toggle" class="btn-projection-action"
+                                title="Ativar Tela Cheia para Projetor">
+                                <span id="fullscreen-icon">⛶</span>
+                                <span id="fullscreen-text">Tela Cheia</span>
+                            </button>
+                            <button id="btn-ranking-back" class="btn-projection-action btn-back-action">
+                                ← Voltar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Grade Dupla: Ambos os Rankings Renderizados Simultaneamente -->
+                    <div class="rankings-dual-grid">
+
+                        <!-- Coluna 1: Classificação Individual (1 Jogador) -->
+                        <div class="ranking-panel-column">
+                            <div class="panel-header panel-header-solo">
+                                <div class="panel-icon">⭐</div>
+                                <div>
+                                    <h3 class="panel-title">Ranking Individual (1 Jogador)</h3>
+                                    <div class="panel-subtitle">Top Estudantes • Acertos & Menor Tempo</div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive projection-table-wrap">
+                                <table class="ranking-table projection-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 65px; text-align: center;">Pos.</th>
+                                            <th>Estudante & Escola</th>
+                                            <th style="text-align: center;">Acertos / Pontos</th>
+                                            <th style="text-align: center; width: 95px;">Tempo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ranking-solo-tbody">
+                                        <tr>
+                                            <td colspan="4" class="empty-state">Carregando classificação individual...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Coluna 2: Duelos em Tempo Real (2 Jogadores) -->
+                        <div class="ranking-panel-column">
+                            <div class="panel-header panel-header-duel">
+                                <div class="panel-icon">⚔️</div>
+                                <div>
+                                    <h3 class="panel-title">Ranking dos Duelos (2 Jogadores)</h3>
+                                    <div class="panel-subtitle">Vencedores & Escolas Campeãs</div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive projection-table-wrap">
+                                <table class="ranking-table projection-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Vencedor & Escola 🏆</th>
+                                            <th>Confronto</th>
+                                            <th style="text-align: center; width: 100px;">Placar</th>
+                                            <th style="text-align: center; width: 95px;">Horário</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ranking-duel-tbody">
+                                        <tr>
+                                            <td colspan="4" class="empty-state">Carregando duelos ao vivo...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Rodapé do Painel de Projeção -->
+                    <div class="projection-footer">
+                        <span>✨ Mostra Nossa Escola, Nossas Criações • PEI Profª Maria de Lourdes Gentille Stéfano
+                            (Lurdita)</span>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Rodapé Oficial -->
+        <footer class="main-footer">
+            <p>
+                <strong>Mostra Nossa Escola, Nossas Criações</strong> • PEI Profª Maria de Lourdes Gentille Stéfano
+                (Lurdita)
+            </p>
+            <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.8;">
+                Desenvolvido com carinho para valorização do conhecimento, criatividade e protagonismo dos estudantes.
+            </p>
+        </footer>
+
+    </div>
+
+    <!-- Modal de Confirmação e Senha para Zerar Tabelas -->
+    <div id="modal-reset-rankings" class="arcade-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-reset-title">
+        <div class="arcade-modal-card">
+            <div class="arcade-modal-header">
+                <div class="arcade-modal-icon">🔒</div>
+                <div>
+                    <h3 id="modal-reset-title" class="arcade-modal-title">Área do Professor</h3>
+                    <p class="arcade-modal-sub">Zerar todas as tabelas de classificação</p>
+                </div>
+                <button type="button" id="btn-modal-close" class="arcade-modal-close" aria-label="Fechar modal">&times;</button>
+            </div>
+            <form id="form-reset-rankings" onsubmit="return false;">
+                <div class="arcade-modal-body">
+                    <p class="arcade-modal-warning">
+                        ⚠️ <strong>Atenção:</strong> Esta ação irá apagar definitivamente todos os registros do <strong>Ranking Individual</strong> e do <strong>Ranking dos Duelos</strong> da Mostra.
+                    </p>
+                    <div class="form-group arcade-form-group" style="margin-top: 16px; margin-bottom: 6px;">
+                        <label for="input-reset-password">DIGITE A SENHA DO PROFESSOR:</label>
+                        <input type="password" id="input-reset-password" class="form-control arcade-input"
+                            placeholder="Digite a senha..." autocomplete="current-password" required>
+                        <div id="reset-password-error" class="arcade-error-msg" style="display: none;">
+                            ❌ Senha incorreta! Digite a senha correta para autorizar.
+                        </div>
+                    </div>
+                </div>
+                <div class="arcade-modal-actions">
+                    <button type="button" id="btn-cancel-reset" class="btn-secondary arcade-btn-secondary" style="padding: 10px 18px;">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btn-confirm-reset" class="btn-danger-confirm" style="padding: 10px 22px;">
+                        <span>🗑️</span> Confirmar e Zerar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast de Notificação Arcade -->
+    <div id="arcade-toast-notice" class="arcade-toast-notice" role="status" aria-live="polite">
+        <span id="toast-notice-icon">✅</span>
+        <span id="toast-notice-text">Ação concluída com sucesso!</span>
+    </div>
+
+    <!-- Lógica da Aplicação -->
+    <script src="app.js"></script>
+</body>
+
+</html>
