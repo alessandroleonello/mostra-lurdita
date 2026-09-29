@@ -8,7 +8,7 @@
 
     <!-- Meta SEO -->
     <meta name="description"
-        content="Site interativo para a Mostra Nossa Escola, Nossas Criações da PEI Lurdita. Desafio de Matemática e Língua Portuguesa do 1º ao 5º Ano para 1 ou 2 jogadores com ranking em tempo real.">
+        content="Site interativo para a Mostra Nossa Escola, Nossas Criações da PEI Lurdita. Desafio de Matemática do 1º ao 5º Ano para 1 ou 2 jogadores com ranking em tempo real.">
     <meta name="author" content="PEI Profª Maria de Lourdes Gentille Stéfano - Lurdita">
     <meta name="theme-color" content="#134674">
 
@@ -45,6 +45,11 @@
                     <span id="sound-icon">🔊</span>
                     <span class="pixel-text">SFX</span>
                 </button>
+                <button id="btn-global-fullscreen" class="btn-icon-sound arcade-sound-btn"
+                    title="Alternar Tela Cheia" aria-label="Tela cheia">
+                    <span id="global-fullscreen-icon">⛶</span>
+                    <span class="pixel-text" id="global-fullscreen-text">TELA CHEIA</span>
+                </button>
                 <button id="btn-open-ranking" class="btn-header-ranking arcade-btn-rank">
                     <span>🏆</span>
                     <span class="pixel-text">HALL DA FAMA</span>
@@ -76,8 +81,7 @@
                     </h2>
 
                     <p class="hero-description arcade-desc">
-                        Entre na arena dos games! Resolva missões de <strong>Matemática</strong> e <strong>Língua
-                            Portuguesa</strong> do <strong>1º ao 5º ano</strong>, faça combos de pontos e conquiste o 1º
+                        Entre na arena dos games! Resolva missões de <strong>Matemática</strong> do <strong>1º ao 5º ano</strong>, faça combos de pontos e conquiste o 1º
                         lugar no pódio!
                     </p>
 
@@ -186,7 +190,7 @@
                     <p class="hero-description" id="register-desc" style="margin-bottom: 22px;">Digite seu nome e escolha sua escola para
                         entrar na disputa!</p>
 
-                    <form id="form-player-register" onsubmit="return false;">
+                    <form id="form-player-register" autocomplete="off" onsubmit="return false;">
                         <!-- Campo do Código de 4 dígitos (exibido apenas ao entrar em um duelo existente) -->
                         <div class="form-group arcade-form-group" id="group-duel-code" style="display: none;">
                             <label for="input-duel-code">CÓDIGO DO DUELO (4 DÍGITOS):</label>
@@ -201,12 +205,13 @@
                         <div class="form-group arcade-form-group">
                             <label for="input-player-name">SEU NOME / APELIDO GAMER:</label>
                             <input type="text" id="input-player-name" class="form-control arcade-input"
-                                placeholder="Ex: Gabriel Silva" maxlength="28" required autocomplete="off">
+                                placeholder="Ex: Gabriel Silva" maxlength="28" required autocomplete="off"
+                                autocorrect="off" autocapitalize="words" spellcheck="false">
                         </div>
 
                         <div class="form-group arcade-form-group">
                             <label for="select-player-school">SUA ESCOLA (EQUIPE):</label>
-                            <select id="select-player-school" class="form-control arcade-input" required>
+                            <select id="select-player-school" class="form-control arcade-input" required autocomplete="off">
                                 <option value="" disabled selected>Selecione sua escola...</option>
                                 <option value="PEI Lurdita">PEI Lurdita</option>
                                 <option value="PEI Valentim Gentil">PEI Valentim Gentil</option>
@@ -218,18 +223,20 @@
                                 <option value="Toledo">Toledo</option>
                                 <option value="Cei Fundecitrus">Cei Fundecitrus</option>
                                 <option value="Outra Escola">Outra Escola</option>
+                                <option value="Não Sou Aluno">Não Sou Aluno</option>
                             </select>
                         </div>
 
                         <div class="form-group arcade-form-group" id="group-custom-school" style="display: none;">
                             <label for="input-custom-school">NOME DA SUA ESCOLA:</label>
                             <input type="text" id="input-custom-school" class="form-control arcade-input"
-                                placeholder="Digite o nome da sua escola...">
+                                placeholder="Digite o nome da sua escola..." autocomplete="off" autocorrect="off"
+                                spellcheck="false">
                         </div>
 
-                        <div class="form-group arcade-form-group">
+                        <div class="form-group arcade-form-group" id="group-player-grade">
                             <label for="select-player-grade">ANO / SÉRIE ESCOLAR:</label>
-                            <select id="select-player-grade" class="form-control arcade-input" required>
+                            <select id="select-player-grade" class="form-control arcade-input" required autocomplete="off">
                                 <option value="" disabled selected>Selecione seu ano / série...</option>
                                 <option value="1º Ano">1º Ano</option>
                                 <option value="2º Ano">2º Ano</option>
@@ -522,12 +529,9 @@
                         <div>
                             <div class="live-pill">
                                 <span class="live-dot"></span>
-                                <span>PAINEL AO VIVO • ATUALIZAÇÃO EM TEMPO REAL</span>
+                                <span>PAINEL AO VIVO </span>
                             </div>
-                            <h2 class="hero-title projection-title">🏆 Classificação da Mostra</h2>
-                            <p class="projection-sub">
-                                PEI Lurdita • Desafio do 1º ao 5º Ano (Matemática & Língua Portuguesa)
-                            </p>
+                            <h2 class="hero-title projection-title">🏆 Classificação</h2>
                         </div>
 
                         <div class="projection-controls">
@@ -556,7 +560,7 @@
                                 <div class="panel-icon">⭐</div>
                                 <div>
                                     <h3 class="panel-title">Ranking Individual (1 Jogador)</h3>
-                                    <div class="panel-subtitle">Top Estudantes • Acertos & Menor Tempo</div>
+                            
                                 </div>
                             </div>
 
@@ -565,7 +569,7 @@
                                     <thead>
                                         <tr>
                                             <th style="width: 65px; text-align: center;">Pos.</th>
-                                            <th>Estudante & Escola</th>
+                                            <th>Estudante</th>
                                             <th style="text-align: center;">Acertos / Pontos</th>
                                             <th style="text-align: center; width: 95px;">Tempo</th>
                                         </tr>
@@ -586,7 +590,7 @@
                                 <div class="panel-icon">⚔️</div>
                                 <div>
                                     <h3 class="panel-title">Ranking dos Duelos (2 Jogadores)</h3>
-                                    <div class="panel-subtitle">Vencedores & Escolas Campeãs</div>
+                                    
                                 </div>
                             </div>
 
@@ -594,7 +598,7 @@
                                 <table class="ranking-table projection-table">
                                     <thead>
                                         <tr>
-                                            <th>Vencedor & Escola 🏆</th>
+                                            <th>Vencedor 🏆</th>
                                             <th>Confronto</th>
                                             <th style="text-align: center; width: 100px;">Placar</th>
                                             <th style="text-align: center; width: 95px;">Horário</th>

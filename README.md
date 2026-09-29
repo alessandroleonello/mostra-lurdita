@@ -1,6 +1,6 @@
 # 🎮 Mostra Nossa Escola, Nossas Criações - PEI Lurdita
 
-> Desafio Arcade interativo de Matemática e Língua Portuguesa (1º ao 5º Ano) desenvolvido para a Mostra Cultural da **PEI Profª Maria de Lourdes Gentille Stéfano (Lurdita)**.
+> Desafio Arcade interativo de Matemática (1º ao 5º Ano) desenvolvido para a Mostra Cultural da **PEI Profª Maria de Lourdes Gentille Stéfano (Lurdita)**.
 
 ---
 
@@ -11,7 +11,7 @@ Aplicação web responsiva no estilo Arcade/Fliperama retro, projetada para ser 
 ### 🕹️ Funcionalidades Principais
 
 - **Modo 1 Jogador (Solo):**
-  - Desafio contra o relógio com questões balanceadas (Matemática e Língua Portuguesa).
+  - Desafio contra o relógio com questões de Matemática do 1º ao 5º ano.
   - Sistema de pontuação arcade com multiplicadores de combo.
   - Registro de High Score.
 
@@ -46,4 +46,4 @@ Por ser uma aplicação web pura (HTML5, Vanilla CSS e Vanilla JavaScript):
 
 - **Escola:** PEI Profª Maria de Lourdes Gentille Stéfano (Lurdita)
 - **Ano/Série:** 1º ao 5º Ano do Ensino Fundamental
-- **Disciplinas:** Matemática & Língua Portuguesa
+- **Disciplinas:** Matemática

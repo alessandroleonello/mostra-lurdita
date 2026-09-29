@@ -1,6 +1,6 @@
 /* ==========================================================================
    MOSTRA NOSSA ESCOLA, NOSSAS CRIAÇÕES - PEI LURDITA
-   Lógica da Aplicação, Desafio de Matemática (5º Ano) e Firebase Firestore
+   Lógica da Aplicação, Desafio de Matemática (1º ao 5º Ano) e Firebase Firestore
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -88,351 +88,303 @@ function setupRealtimeRankingListeners() {
 }
 
 /* --------------------------------------------------------------------------
-   2. BANCO DE QUESTÕES (1º AO 5º ANO - MATEMÁTICA & LÍNGUA PORTUGUESA)
-   - Matemática: Apenas números inteiros (sem decimais/vírgulas)
-   - Língua Portuguesa: Ortografia, gramática, interpretação, rimas, sinônimos/antônimos
+   2. BANCO DE QUESTÕES (CÁLCULO MENTAL RÁPIDO - ADEQUADO PARA MOSTRA ESCOLAR)
+   - Perguntas ultrarrápidas, diretas e simples (1 linha)
+   - Ideais para alto fluxo de alunos: resposta rápida em 2 a 5 segundos
+   - Apenas números inteiros (sem decimais/vírgulas)
    -------------------------------------------------------------------------- */
 const QUESTIONS_BANK = [
-  // ==================== 1º ANO ====================
+  // ==================== OPERAÇÕES BÁSICAS E CÁLCULO RÁPIDO ====================
   {
     id: 101,
-    category: "Matemática - 1º Ano",
-    question: "Pedro tinha 6 lápis de cor no estojo e ganhou mais 4 lápis do seu amigo. Com quantos lápis Pedro ficou no total?",
-    options: ["8 lápis", "10 lápis", "9 lápis", "12 lápis"],
-    correct: 1 // 6 + 4 = 10
+    category: "Matemática Rápida",
+    question: "Quanto é 5 + 4?",
+    options: ["8", "9", "10", "11"],
+    correct: 1 // 9
   },
   {
     id: 102,
-    category: "Matemática - 1º Ano",
-    question: "Em uma cesta havia 12 maçãs vermelhas. As crianças comeram 5 maçãs no lanche. Quantas maçãs sobraram?",
-    options: ["6 maçãs", "7 maçãs", "8 maçãs", "9 maçãs"],
-    correct: 1 // 12 - 5 = 7
+    category: "Matemática Rápida",
+    question: "Quanto é 10 - 3?",
+    options: ["6", "7", "8", "9"],
+    correct: 1 // 7
   },
   {
     id: 103,
-    category: "Matemática - 1º Ano",
-    question: "Em um sítio há 3 vaquinhas no pasto. Sabendo que cada vaquinha tem 4 patas, quantas patas há no total?",
-    options: ["8 patas", "10 patas", "12 patas", "14 patas"],
-    correct: 2 // 3 x 4 = 12
+    category: "Matemática Rápida",
+    question: "Quanto é 6 + 6?",
+    options: ["10", "11", "12", "14"],
+    correct: 2 // 12
   },
   {
     id: 104,
-    category: "Língua Portuguesa - 1º Ano",
-    question: "Qual das palavras a seguir RIMA com a palavra PIPOCA?",
-    options: ["Janela", "Minhoca", "Sapato", "Caderno"],
-    correct: 1
+    category: "Matemática Rápida",
+    question: "Qual número vem logo DEPOIS do 19?",
+    options: ["18", "20", "21", "29"],
+    correct: 1 // 20
   },
   {
     id: 105,
-    category: "Língua Portuguesa - 1º Ano",
-    question: "Quantas VOGAIS aparecem na palavra ESCOLA?",
-    options: ["2 vogais", "3 vogais (E, O, A)", "4 vogais", "5 vogais"],
-    correct: 1
+    category: "Matemática Rápida",
+    question: "Quanto é 8 - 4?",
+    options: ["2", "3", "4", "5"],
+    correct: 2 // 4
   },
   {
     id: 106,
-    category: "Língua Portuguesa - 1º Ano",
-    question: "No alfabeto da língua portuguesa, qual letra vem logo DEPOIS da letra M?",
-    options: ["Letra L", "Letra N", "Letra O", "Letra P"],
-    correct: 1
+    category: "Matemática Rápida",
+    question: "Quanto é 7 + 3?",
+    options: ["9", "10", "11", "12"],
+    correct: 1 // 10
+  },
+  {
+    id: 107,
+    category: "Matemática Rápida",
+    question: "Quantas patas têm 2 cachorros juntos?",
+    options: ["6 patas", "8 patas", "10 patas", "12 patas"],
+    correct: 1 // 8
+  },
+  {
+    id: 108,
+    category: "Matemática Rápida",
+    question: "Quanto é 15 - 5?",
+    options: ["5", "10", "12", "15"],
+    correct: 1 // 10
+  },
+  {
+    id: 109,
+    category: "Matemática Rápida",
+    question: "Quanto é 2 + 8?",
+    options: ["9", "10", "11", "12"],
+    correct: 1 // 10
+  },
+  {
+    id: 110,
+    category: "Matemática Rápida",
+    question: "Quanto é 9 - 5?",
+    options: ["3", "4", "5", "6"],
+    correct: 1 // 4
   },
 
-  // ==================== 2º ANO ====================
+  // ==================== TABUADAS E DOBRO / METADE ====================
   {
     id: 201,
-    category: "Matemática - 2º Ano",
-    question: "Dona Clara comprou 2 dúzias de ovos para fazer um bolo para a mostra da escola. Sabendo que 1 dúzia são 12 ovos, quantos ovos ela comprou?",
-    options: ["20 ovos", "22 ovos", "24 ovos", "26 ovos"],
-    correct: 2 // 2 x 12 = 24
+    category: "Matemática Rápida",
+    question: "Qual é o DOBRO de 5?",
+    options: ["8", "10", "12", "15"],
+    correct: 1 // 10
   },
   {
     id: 202,
-    category: "Matemática - 2º Ano",
-    question: "Em uma sala há 16 meninos e 18 meninas. Quantos estudantes há nessa sala ao todo?",
-    options: ["32 estudantes", "34 estudantes", "36 estudantes", "38 estudantes"],
-    correct: 1 // 16 + 18 = 34
+    category: "Matemática Rápida",
+    question: "Quanto é 20 + 30?",
+    options: ["40", "50", "60", "70"],
+    correct: 1 // 50
   },
   {
     id: 203,
-    category: "Matemática - 2º Ano",
-    question: "Sofia tem 4 notas de 5 reais na sua carteira. Quantos reais Sofia tem ao todo?",
-    options: ["15 reais", "20 reais", "25 reais", "30 reais"],
-    correct: 1 // 4 x 5 = 20
+    category: "Matemática Rápida",
+    question: "Quanto é 2 x 7?",
+    options: ["12", "14", "16", "18"],
+    correct: 1 // 14
   },
   {
     id: 204,
-    category: "Língua Portuguesa - 2º Ano",
-    question: "Qual é o ANTÔNIMO (oposto) da palavra ALEGRE?",
-    options: ["Rápido", "Triste", "Contente", "Alto"],
-    correct: 1
+    category: "Matemática Rápida",
+    question: "Qual destes números é PAR?",
+    options: ["7", "9", "12", "15"],
+    correct: 2 // 12
   },
   {
     id: 205,
-    category: "Língua Portuguesa - 2º Ano",
-    question: "Qual palavra tem o mesmo significado (SINÔNIMO) de BELO?",
-    options: ["Bonito", "Feio", "Escuro", "Veloz"],
-    correct: 0
+    category: "Matemática Rápida",
+    question: "Quantos dias tem uma semana inteira?",
+    options: ["5 dias", "6 dias", "7 dias", "8 dias"],
+    correct: 2 // 7
   },
   {
     id: 206,
-    category: "Língua Portuguesa - 2º Ano",
-    question: "Qual é o PLURAL correto da palavra FLOR?",
-    options: ["Floras", "Flores", "Floris", "Florzes"],
-    correct: 1
+    category: "Matemática Rápida",
+    question: "Quanto é 30 - 10?",
+    options: ["15", "20", "25", "30"],
+    correct: 1 // 20
+  },
+  {
+    id: 207,
+    category: "Matemática Rápida",
+    question: "Qual número completa a sequência: 2, 4, 6, ___?",
+    options: ["7", "8", "9", "10"],
+    correct: 1 // 8
+  },
+  {
+    id: 208,
+    category: "Matemática Rápida",
+    question: "Quanto é 9 + 8?",
+    options: ["15", "16", "17", "18"],
+    correct: 2 // 17
+  },
+  {
+    id: 209,
+    category: "Matemática Rápida",
+    question: "Qual é o DOBRO de 8?",
+    options: ["14", "15", "16", "18"],
+    correct: 2 // 16
+  },
+  {
+    id: 210,
+    category: "Matemática Rápida",
+    question: "Quanto é a METADE de 12?",
+    options: ["5", "6", "7", "8"],
+    correct: 1 // 6
   },
 
-  // ==================== 3º ANO ====================
+  // ==================== MULTIPLICAÇÕES E FORMAS GEOMÉTRICAS ====================
   {
     id: 301,
-    category: "Matemática - 3º Ano",
-    question: "Um cinema tem 7 fileiras com 8 poltronas em cada uma. Quantas pessoas cabem sentadas nesse cinema?",
-    options: ["48 pessoas", "54 pessoas", "56 pessoas", "64 pessoas"],
-    correct: 2 // 7 x 8 = 56
+    category: "Matemática Rápida",
+    question: "Quanto é 3 x 4?",
+    options: ["10", "11", "12", "14"],
+    correct: 2 // 12
   },
   {
     id: 302,
-    category: "Matemática - 3º Ano",
-    question: "Um pacote contém 36 bombons para dividir igualmente entre 4 amigos. Quantos bombons cada amigo vai receber?",
-    options: ["7 bombons", "8 bombons", "9 bombons", "10 bombons"],
-    correct: 2 // 36 / 4 = 9
+    category: "Matemática Rápida",
+    question: "Quantos lados tem um triângulo?",
+    options: ["2 lados", "3 lados", "4 lados", "5 lados"],
+    correct: 1 // 3
   },
   {
     id: 303,
-    category: "Matemática - 3º Ano",
-    question: "Uma partida de gincana durou exatamente 2 horas inteiras. Quantos minutos durou essa partida?",
-    options: ["60 minutos", "100 minutos", "120 minutos", "140 minutos"],
-    correct: 2 // 2 x 60 = 120
+    category: "Matemática Rápida",
+    question: "Quanto é a METADE de 20?",
+    options: ["5", "10", "12", "15"],
+    correct: 1 // 10
   },
   {
     id: 304,
-    category: "Matemática - 3º Ano",
-    question: "Qual figura geométrica plana possui exatamente 3 lados e 3 vértices?",
-    options: ["Quadrado", "Retângulo", "Triângulo", "Círculo"],
-    correct: 2
+    category: "Matemática Rápida",
+    question: "Quanto é 5 x 5?",
+    options: ["20", "25", "30", "35"],
+    correct: 1 // 25
   },
   {
     id: 305,
-    category: "Língua Portuguesa - 3º Ano",
-    question: "Qual sinal de pontuação deve ser colocado no final da frase: 'Você vai visitar a Mostra da PEI Lurdita hoje'?",
-    options: ["Ponto final (.)", "Ponto de interrogação (?)", "Vírgula (,)", "Dois pontos (:)"],
-    correct: 1
+    category: "Matemática Rápida",
+    question: "Quanto é 18 dividido por 2?",
+    options: ["7", "8", "9", "10"],
+    correct: 2 // 9
   },
   {
     id: 306,
-    category: "Língua Portuguesa - 3º Ano",
-    question: "Qual das palavras a seguir está escrita de forma CORRETA na norma padrão?",
-    options: ["Carroça", "Caroça", "Cahoca", "Carroza"],
-    correct: 0
+    category: "Matemática Rápida",
+    question: "Quantos minutos tem 1 hora inteira?",
+    options: ["30 minutos", "50 minutos", "60 minutos", "100 minutos"],
+    correct: 2 // 60
   },
   {
     id: 307,
-    category: "Língua Portuguesa - 3º Ano",
-    question: "O conjunto ou coletivo de muitos PEIXES nadando juntos é chamado de:",
-    options: ["Alcateia", "Enxame", "Cardume", "Rebanho"],
-    correct: 2
+    category: "Matemática Rápida",
+    question: "Quanto é 50 + 50?",
+    options: ["80", "90", "100", "110"],
+    correct: 2 // 100
+  },
+  {
+    id: 308,
+    category: "Matemática Rápida",
+    question: "Quanto é 4 x 6?",
+    options: ["20", "22", "24", "26"],
+    correct: 2 // 24
+  },
+  {
+    id: 309,
+    category: "Matemática Rápida",
+    question: "Quanto é 15 dividido por 3?",
+    options: ["4", "5", "6", "7"],
+    correct: 1 // 5
+  },
+  {
+    id: 310,
+    category: "Matemática Rápida",
+    question: "Quantos lados tem um quadrado?",
+    options: ["3 lados", "4 lados", "5 lados", "6 lados"],
+    correct: 1 // 4
   },
 
-  // ==================== 4º ANO ====================
+  // ==================== CÁLCULOS MENTAIS DIRETOS ====================
   {
     id: 401,
-    category: "Matemática - 4º Ano",
-    question: "Para a mostra escolar, foram compradas 15 caixas de suco. Cada caixa contém 12 unidades. Quantos sucos foram comprados ao todo?",
-    options: ["150 sucos", "165 sucos", "180 sucos", "195 sucos"],
-    correct: 2 // 15 x 12 = 180
+    category: "Matemática Rápida",
+    question: "Quanto é 100 - 40?",
+    options: ["50", "60", "70", "80"],
+    correct: 1 // 60
   },
   {
     id: 402,
-    category: "Matemática - 4º Ano",
-    question: "Um jardim quadrado na entrada da escola tem cada lado medindo 7 metros. Qual é o perímetro total desse jardim?",
-    options: ["21 metros", "28 metros", "49 metros", "35 metros"],
-    correct: 1 // 4 x 7 = 28
+    category: "Matemática Rápida",
+    question: "Quanto é 6 x 6?",
+    options: ["30", "32", "36", "40"],
+    correct: 2 // 36
   },
   {
     id: 403,
-    category: "Matemática - 4º Ano",
-    question: "No número 3.845, qual é o valor posicional do algarismo 8?",
-    options: ["8 unidades", "80 unidades", "800 unidades (8 centenas)", "8000 unidades"],
-    correct: 2
+    category: "Matemática Rápida",
+    question: "Quanto é 20 dividido por 4?",
+    options: ["4", "5", "6", "7"],
+    correct: 1 // 5
   },
   {
     id: 404,
-    category: "Matemática - 4º Ano",
-    question: "Um caminhão transporta 6 caixas pesadas com 50 quilos cada uma. Qual é o peso total da carga em quilos?",
-    options: ["250 quilos", "280 quilos", "300 quilos", "350 quilos"],
-    correct: 2 // 6 x 50 = 300
+    category: "Matemática Rápida",
+    question: "Qual é o DOBRO de 25?",
+    options: ["40", "45", "50", "55"],
+    correct: 2 // 50
   },
   {
     id: 405,
-    category: "Língua Portuguesa - 4º Ano",
-    question: "Na frase 'Os alunos dedicados fizeram um belo trabalho na mostra', a palavra DEDICADOS é um:",
-    options: ["Substantivo", "Verbo", "Adjetivo", "Artigo"],
-    correct: 2
+    category: "Matemática Rápida",
+    question: "Qual número completa a sequência: 5, 10, 15, ___?",
+    options: ["18", "20", "22", "25"],
+    correct: 1 // 20
   },
   {
     id: 406,
-    category: "Língua Portuguesa - 4º Ano",
-    question: "Qual das formas verbais abaixo está no PRETÉRITO (passado)?",
-    options: ["Escrevem", "Escreverão", "Escreveram", "Escrever"],
-    correct: 2
+    category: "Matemática Rápida",
+    question: "Quanto é 7 x 3?",
+    options: ["18", "20", "21", "24"],
+    correct: 2 // 21
   },
   {
     id: 407,
-    category: "Língua Portuguesa - 4º Ano",
-    question: "Na frase 'Mariana e Beatriz são alunas do Lurdita. ___ adoram ler livros.', qual pronome completa a frase corretamente?",
-    options: ["Eles", "Elas", "Nós", "Vocês"],
-    correct: 1
-  },
-
-  // ==================== 5º ANO ====================
-  {
-    id: 501,
-    category: "Matemática - 5º Ano",
-    question: "Na biblioteca da PEI Lurdita havia 450 livros. A escola recebeu 250 livros novos e depois emprestou 100 livros. Quantos livros ficaram na biblioteca?",
-    options: ["550 livros", "600 livros", "650 livros", "700 livros"],
-    correct: 1 // 450 + 250 = 700; 700 - 100 = 600
+    category: "Matemática Rápida",
+    question: "Quanto é 80 + 20?",
+    options: ["90", "100", "110", "120"],
+    correct: 1 // 100
   },
   {
-    id: 502,
-    category: "Matemática - 5º Ano",
-    question: "Em uma turma de 40 alunos, exatamente 1/4 dos alunos participam da oficina de robótica. Quantos alunos participam da robótica?",
-    options: ["8 alunos", "10 alunos", "12 alunos", "15 alunos"],
-    correct: 1 // 40 / 4 = 10
+    id: 408,
+    category: "Matemática Rápida",
+    question: "Quanto é 8 x 5?",
+    options: ["35", "40", "45", "50"],
+    correct: 1 // 40
   },
   {
-    id: 503,
-    category: "Matemática - 5º Ano",
-    question: "Gabriel comprou 3 cadernos de 14 reais cada um e pagou com uma nota de 50 reais. Quantos reais ele recebeu de troco?",
-    options: ["6 reais", "7 reais", "8 reais", "9 reais"],
-    correct: 2 // 3 x 14 = 42; 50 - 42 = 8
+    id: 409,
+    category: "Matemática Rápida",
+    question: "Quanto é a METADE de 50?",
+    options: ["20", "25", "30", "35"],
+    correct: 1 // 25
   },
   {
-    id: 504,
-    category: "Matemática - 5º Ano",
-    question: "A sala da mostra escolar tem o formato retangular, com 9 metros de comprimento por 6 metros de largura. Qual é a área dessa sala?",
-    options: ["30 metros quadrados", "45 metros quadrados", "54 metros quadrados", "60 metros quadrados"],
-    correct: 2 // 9 x 6 = 54
-  },
-  {
-    id: 505,
-    category: "Matemática - 5º Ano",
-    question: "Uma impressora escolar imprime 30 páginas por minuto. Quantas páginas ela imprimirá em 15 minutos?",
-    options: ["400 páginas", "420 páginas", "450 páginas", "500 páginas"],
-    correct: 2 // 30 x 15 = 450
-  },
-  {
-    id: 506,
-    category: "Matemática - 5º Ano",
-    question: "Quantos segundos há em exatamente 5 minutos inteiros?",
-    options: ["200 segundos", "250 segundos", "300 segundos", "350 segundos"],
-    correct: 2 // 5 x 60 = 300
-  },
-  {
-    id: 507,
-    category: "Língua Portuguesa - 5º Ano",
-    question: "Em qual das frases abaixo o verbo destacado indica uma ação no FUTURO?",
-    options: [
-      "Ontem nós apresentamos nossa maquete na feira.",
-      "Hoje nós estudamos na biblioteca.",
-      "Amanhã nós apresentaremos nosso projeto da mostra.",
-      "Todos os dias eles chegam pontualmente."
-    ],
-    correct: 2
-  },
-  {
-    id: 508,
-    category: "Língua Portuguesa - 5º Ano",
-    question: "Assinale a alternativa que apresenta a concordância verbal CORRETA:",
-    options: [
-      "Os professores e os alunos organizou a mostra.",
-      "Os professores e os alunos organizaram a mostra.",
-      "A turma dos alunos chegaram animada.",
-      "Eles foi até o pátio da escola."
-    ],
-    correct: 1
-  },
-  {
-    id: 509,
-    category: "Língua Portuguesa - 5º Ano",
-    question: "Na oração 'Os estudantes inteligentes venceram o grande desafio', qual é o SUJEITO da frase?",
-    options: [
-      "Os estudantes inteligentes",
-      "venceram o grande desafio",
-      "o grande desafio",
-      "inteligentes"
-    ],
-    correct: 0
-  },
-  {
-    id: 510,
-    category: "Língua Portuguesa - 5º Ano",
-    question: "Complete adequadamente com 'mau' ou 'mal': 'Aquele não era um ___ menino.' e 'O motorista dirigiu ___ na chuva.'",
-    options: ["mau / mal", "mal / mau", "mau / mau", "mal / mal"],
-    correct: 0
-  },
-  {
-    id: 511,
-    category: "Língua Portuguesa - 5º Ano",
-    question: "Na frase 'Aquele aluno é uma fera na matemática!', a expressão figurada 'é uma fera' significa que o estudante:",
-    options: [
-      "É bravo e impaciente",
-      "É muito bom e habilidoso",
-      "Está com sono",
-      "Não gosta da disciplina"
-    ],
-    correct: 1
-  },
-  {
-    id: 512,
-    category: "Matemática - 5º Ano",
-    question: "Em uma gincana de matemática na mostra da escola, Luiza resolveu 45 problemas e Bruno resolveu 38. Quantos problemas os dois resolveram juntos?",
-    options: ["73 problemas", "83 problemas", "85 problemas", "93 problemas"],
-    correct: 1 // 45 + 38 = 83
-  },
-  {
-    id: 513,
-    category: "Matemática - 4º Ano",
-    question: "Para a feira de ciências da escola, foram compradas 8 caixas de lápis, cada uma com 24 unidades. Quantos lápis foram comprados ao todo?",
-    options: ["182 lápis", "192 lápis", "202 lápis", "212 lápis"],
-    correct: 1 // 8 x 24 = 192
-  },
-  {
-    id: 514,
-    category: "Matemática - 3º Ano",
-    question: "A cantina escolar assou 180 pãezinhos de queijo e os distribuiu igualmente em 6 bandejas. Quantos pãezinhos foram colocados em cada bandeja?",
-    options: ["25 pãezinhos", "30 pãezinhos", "35 pãezinhos", "40 pãezinhos"],
-    correct: 1 // 180 / 6 = 30
-  },
-  {
-    id: 515,
-    category: "Língua Portuguesa - 4º Ano",
-    question: "Qual das palavras destacadas a seguir é um ADJETIVO (característica/qualidade)? 'A aluna dedicada apresentou um projeto brilhante na mostra.'",
-    options: ["aluna", "apresentou", "brilhante", "mostra"],
-    correct: 2
-  },
-  {
-    id: 516,
-    category: "Língua Portuguesa - 3º Ano",
-    question: "Qual é o ANTÔNIMO (palavra de sentido contrário) de 'CORAJOSO'?",
-    options: ["Forte", "Medroso", "Valente", "Animado"],
-    correct: 1
-  },
-  {
-    id: 517,
-    category: "Língua Portuguesa - 5º Ano",
-    question: "Assinale a alternativa em que todas as palavras estão acentuadas corretamente segundo as regras da língua portuguesa:",
-    options: [
-      "Lápis, régua e história",
-      "Lapis, regua e historia",
-      "Lápis, regua e historia",
-      "Lapis, régua e história"
-    ],
-    correct: 0
+    id: 410,
+    category: "Matemática Rápida",
+    question: "Quanto é 10 x 10?",
+    options: ["90", "100", "110", "1000"],
+    correct: 1 // 100
   }
 ];
 
+// Partidas de 10 perguntas dinâmicas e rápidas de Matemática
 const QUESTIONS_PER_GAME = 10;
-const MATH_PER_GAME = 5;
-const PORTUGUESE_PER_GAME = 5;
 
 /* --------------------------------------------------------------------------
    3. SINTETIZADOR DE EFEITOS SONOROS ARCADE 8-BIT / CHIPTUNE (WEB AUDIO API)
@@ -740,7 +692,7 @@ const gameState = {
 };
 
 /* --------------------------------------------------------------------------
-   6. CONTROLE DE NAVEGAÇÃO ENTRE TELAS
+   6. CONTROLE DE NAVEGAÇÃO ENTRE TELAS E RESET DE FORMULÁRIO
    -------------------------------------------------------------------------- */
 function showScreen(screenId) {
   const screens = document.querySelectorAll('.screen');
@@ -751,6 +703,49 @@ function showScreen(screenId) {
     target.classList.add('active');
     gameState.currentScreen = screenId;
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+/**
+ * Limpa todos os campos de digitação do formulário de entrada para que novos
+ * jogos e novos alunos sempre comecem com campos vazios (sem valores cacheados).
+ */
+function resetRegisterForm(resetPlayerState = false) {
+  const form = document.getElementById('form-player-register');
+  if (form) {
+    try {
+      form.reset();
+    } catch (e) {}
+  }
+
+  const nameInput = document.getElementById('input-player-name');
+  if (nameInput) nameInput.value = '';
+
+  const schoolSelect = document.getElementById('select-player-school');
+  if (schoolSelect) schoolSelect.selectedIndex = 0;
+
+  const customSchoolInput = document.getElementById('input-custom-school');
+  if (customSchoolInput) customSchoolInput.value = '';
+
+  const customSchoolGroup = document.getElementById('group-custom-school');
+  if (customSchoolGroup) customSchoolGroup.style.display = 'none';
+
+  const gradeSelect = document.getElementById('select-player-grade');
+  if (gradeSelect) {
+    gradeSelect.selectedIndex = 0;
+    gradeSelect.required = true;
+  }
+
+  const gradeGroup = document.getElementById('group-player-grade');
+  if (gradeGroup) gradeGroup.style.display = 'block';
+
+  const duelCodeInput = document.getElementById('input-duel-code');
+  if (duelCodeInput) duelCodeInput.value = '';
+
+  if (resetPlayerState) {
+    gameState.player.name = '';
+    gameState.player.school = '';
+    gameState.player.grade = '';
   }
 }
 
@@ -785,7 +780,7 @@ function stopTimer() {
 }
 
 /* --------------------------------------------------------------------------
-   8. SORTEIO E PREPARAÇÃO DAS PERGUNTAS
+   8. SORTEIO E PREPARAÇÃO DAS PERGUNTAS (EXCLUSIVAMENTE MATEMÁTICA)
    -------------------------------------------------------------------------- */
 function prepareQuestions(questionIds = null) {
   let selected = [];
@@ -793,16 +788,10 @@ function prepareQuestions(questionIds = null) {
     // Sincronizar com perguntas pré-definidas da sala de duelo
     selected = questionIds.map(id => QUESTIONS_BANK.find(q => q.id === id)).filter(Boolean);
   } else {
-    // Sorteio equilibrado: exatamente 5 de Matemática e 5 de Língua Portuguesa
+    // Sorteio de 10 perguntas rápidas de Matemática (fluxo dinâmico para a mostra)
     const mathPool = QUESTIONS_BANK.filter(q => q.category && q.category.includes('Matemática'));
-    const ptPool = QUESTIONS_BANK.filter(q => q.category && q.category.includes('Língua Portuguesa'));
-
-    const shuffledMath = [...mathPool].sort(() => 0.5 - Math.random()).slice(0, MATH_PER_GAME);
-    const shuffledPt = [...ptPool].sort(() => 0.5 - Math.random()).slice(0, PORTUGUESE_PER_GAME);
-
-    // Mescla as 10 perguntas e embaralha a ordem de exibição
-    const combined = [...shuffledMath, ...shuffledPt].sort(() => 0.5 - Math.random());
-    selected = combined.slice(0, QUESTIONS_PER_GAME);
+    const shuffledMath = [...mathPool].sort(() => 0.5 - Math.random());
+    selected = shuffledMath.slice(0, QUESTIONS_PER_GAME);
   }
 
   gameState.quiz.questions = selected;
@@ -1973,6 +1962,48 @@ function toggleFullscreenProjection() {
   }
 }
 
+/**
+ * Ativa ou desativa a Tela Cheia nativa do navegador a qualquer momento, em qualquer tela.
+ */
+function toggleGlobalFullscreen() {
+  sounds.click();
+  const isCurrentlyFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+
+  if (!isCurrentlyFullscreen) {
+    const docEl = document.documentElement;
+    const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+    if (requestFs) {
+      requestFs.call(docEl).catch(err => console.warn("Fullscreen request error:", err));
+    }
+  } else {
+    const exitFs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (exitFs) {
+      exitFs.call(document).catch(err => console.warn("Exit fullscreen error:", err));
+    }
+  }
+}
+
+function updateFullscreenButtonsState() {
+  const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+
+  if (!isFullscreen) {
+    document.body.classList.remove('fullscreen-projection');
+  }
+
+  const globalIcon = document.getElementById('global-fullscreen-icon');
+  const globalText = document.getElementById('global-fullscreen-text');
+  const globalBtn = document.getElementById('btn-global-fullscreen');
+
+  if (globalIcon) globalIcon.textContent = isFullscreen ? '✕' : '⛶';
+  if (globalText) globalText.textContent = isFullscreen ? 'SAIR TELA CHEIA' : 'TELA CHEIA';
+  if (globalBtn) globalBtn.title = isFullscreen ? 'Sair da Tela Cheia' : 'Ativar Tela Cheia';
+
+  const fsIcon = document.getElementById('fullscreen-icon');
+  const fsText = document.getElementById('fullscreen-text');
+  if (fsIcon) fsIcon.textContent = isFullscreen ? '✕' : '⛶';
+  if (fsText) fsText.textContent = isFullscreen ? 'Sair da Tela Cheia' : 'Tela Cheia';
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/[&<>"']/g, m => ({
@@ -1991,9 +2022,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inicializa conexão Firebase
   initFirebase();
 
+  // Limpa campos na carga inicial para evitar dados cacheados pelo navegador
+  resetRegisterForm(true);
+
   // Header / Brand
   document.getElementById('btn-brand-home').addEventListener('click', () => {
     sounds.click();
+    resetRegisterForm(true);
     showScreen('screen-home');
   });
 
@@ -2004,6 +2039,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sound-icon').textContent = isNowEnabled ? '🔊' : '🔇';
     btnSound.setAttribute('aria-pressed', !isNowEnabled);
   });
+
+  // Botão Tela Cheia Global no Cabeçalho (disponível a qualquer momento)
+  const btnGlobalFullscreen = document.getElementById('btn-global-fullscreen');
+  if (btnGlobalFullscreen) {
+    btnGlobalFullscreen.addEventListener('click', () => {
+      if (gameState.currentScreen === 'screen-rankings') {
+        toggleFullscreenProjection();
+      } else {
+        toggleGlobalFullscreen();
+      }
+    });
+  }
+
+  // Sincronização dos botões com eventos do navegador
+  document.addEventListener('fullscreenchange', updateFullscreenButtonsState);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenButtonsState);
+  document.addEventListener('mozfullscreenchange', updateFullscreenButtonsState);
+  document.addEventListener('MSFullscreenChange', updateFullscreenButtonsState);
 
   // Botões de Rankings
   document.getElementById('btn-open-ranking').addEventListener('click', loadRankingsUI);
@@ -2016,6 +2069,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.body.classList.contains('fullscreen-projection')) {
       toggleFullscreenProjection();
     }
+    resetRegisterForm(true);
     showScreen('screen-home');
   });
 
@@ -2057,7 +2111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     formReset.addEventListener('submit', handleConfirmReset);
   }
 
-  // Tecla Escape para fechar modal ou F/F11 para alternar tela cheia
+  // Tecla Escape para fechar modal ou F para alternar tela cheia a qualquer momento
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const modal = document.getElementById('modal-reset-rankings');
@@ -2067,10 +2121,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if ((e.key === 'f' || e.key === 'F') && gameState.currentScreen === 'screen-rankings') {
+    if (e.key === 'f' || e.key === 'F') {
       const activeTag = document.activeElement ? document.activeElement.tagName : '';
       if (activeTag !== 'INPUT' && activeTag !== 'SELECT') {
-        toggleFullscreenProjection();
+        if (gameState.currentScreen === 'screen-rankings') {
+          toggleFullscreenProjection();
+        } else {
+          toggleGlobalFullscreen();
+        }
       }
     }
   });
@@ -2078,18 +2136,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Botão Jogar da Home (Som de Moeda/Press Start Arcade)
   document.getElementById('btn-start-game').addEventListener('click', () => {
     sounds.coin();
+    resetRegisterForm(true);
     showScreen('screen-mode');
   });
 
   // Voltar da escolha de modo
   document.getElementById('btn-back-to-home').addEventListener('click', () => {
     sounds.click();
+    resetRegisterForm(true);
     showScreen('screen-home');
   });
 
   // Escolha do Modo Solo
   document.getElementById('card-mode-solo').addEventListener('click', () => {
     sounds.select();
+    resetRegisterForm(true);
     gameState.mode = 'solo';
     document.getElementById('register-badge-mode').innerHTML = '<span>⭐</span> 1 PLAYER (SOLO)';
     document.getElementById('register-title').textContent = 'INSIRA SEU NICKNAME';
@@ -2100,6 +2161,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('input-duel-code').required = false;
     showScreen('screen-register');
     handleSchoolSelectChange();
+    setTimeout(() => {
+      const nameInput = document.getElementById('input-player-name');
+      if (nameInput) nameInput.focus();
+    }, 100);
   });
 
   // Escolha do Modo Duelo -> Abre tela intermediária com opções "Criar" ou "Entrar"
@@ -2114,6 +2179,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnBackFromDuel) {
     btnBackFromDuel.addEventListener('click', () => {
       sounds.click();
+      resetRegisterForm(true);
       showScreen('screen-mode');
     });
   }
@@ -2123,6 +2189,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (cardDuelCreate) {
     cardDuelCreate.addEventListener('click', () => {
       sounds.select();
+      resetRegisterForm(true);
       gameState.mode = 'duel';
       gameState.duelSubMode = 'create';
       document.getElementById('register-badge-mode').innerHTML = '<span>👑</span> CRIAR NOVO DUELO (PLAYER 1)';
@@ -2134,6 +2201,10 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('input-duel-code').required = false;
       showScreen('screen-register');
       handleSchoolSelectChange();
+      setTimeout(() => {
+        const nameInput = document.getElementById('input-player-name');
+        if (nameInput) nameInput.focus();
+      }, 100);
     });
   }
 
@@ -2142,6 +2213,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (cardDuelJoin) {
     cardDuelJoin.addEventListener('click', () => {
       sounds.select();
+      resetRegisterForm(true);
       gameState.mode = 'duel';
       gameState.duelSubMode = 'join';
       document.getElementById('register-badge-mode').innerHTML = '<span>🎯</span> ENTRAR EM UM DUELO (PLAYER 2)';
@@ -2170,6 +2242,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Voltar do Registro
   document.getElementById('btn-back-to-mode').addEventListener('click', () => {
     sounds.click();
+    resetRegisterForm(true);
     if (gameState.mode === 'duel') {
       showScreen('screen-duel-mode');
     } else {
@@ -2177,20 +2250,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Seleção de Escola ("Outra Escola" exibe campo de texto com foco)
+  // Seleção de Escola ("Outra Escola" exibe campo de texto; "Não Sou Aluno" oculta campo de série)
   const schoolSelect = document.getElementById('select-player-school');
   const customSchoolGroup = document.getElementById('group-custom-school');
   const customSchoolInput = document.getElementById('input-custom-school');
   const gradeSelect = document.getElementById('select-player-grade');
+  const gradeGroup = document.getElementById('group-player-grade');
 
   function handleSchoolSelectChange() {
-    if (schoolSelect.value === 'Outra Escola') {
+    const val = schoolSelect ? schoolSelect.value : '';
+
+    // Se escolheu 'Outra Escola', abre input para digitar o nome
+    if (val === 'Outra Escola') {
       customSchoolGroup.style.display = 'block';
       customSchoolInput.required = true;
       setTimeout(() => customSchoolInput.focus(), 60);
     } else {
       customSchoolGroup.style.display = 'none';
       customSchoolInput.required = false;
+      customSchoolInput.value = '';
+    }
+
+    // Se escolheu 'Não Sou Aluno', oculta e dispensa o campo de Ano/Série
+    if (val === 'Não Sou Aluno') {
+      if (gradeGroup) gradeGroup.style.display = 'none';
+      if (gradeSelect) {
+        gradeSelect.required = false;
+        gradeSelect.value = '';
+      }
+    } else {
+      if (gradeGroup) gradeGroup.style.display = 'block';
+      if (gradeSelect) {
+        gradeSelect.required = true;
+      }
     }
   }
 
@@ -2225,17 +2317,33 @@ document.addEventListener('DOMContentLoaded', () => {
       school = customVal;
     }
 
-    let grade = gradeSelect ? gradeSelect.value : '';
-    if (!grade) {
-      alert("Por favor, selecione seu ano/série.");
-      if (gradeSelect) gradeSelect.focus();
-      return;
+    let grade = '';
+    if (school !== 'Não Sou Aluno') {
+      grade = gradeSelect ? gradeSelect.value : '';
+      if (!grade) {
+        alert("Por favor, selecione seu ano/série.");
+        if (gradeSelect) gradeSelect.focus();
+        return;
+      }
+    }
+
+    let duelJoinCode = '';
+    if (gameState.mode === 'duel' && gameState.duelSubMode === 'join') {
+      duelJoinCode = (document.getElementById('input-duel-code').value || '').trim().toUpperCase();
+      if (!duelJoinCode || duelJoinCode.length !== 4) {
+        alert("Por favor, digite o código de 4 dígitos do duelo (ex: K7P2).");
+        document.getElementById('input-duel-code').focus();
+        return;
+      }
     }
 
     gameState.player.name = name;
     gameState.player.school = school;
     gameState.player.grade = grade;
     sounds.coin();
+
+    // Limpa imediatamente os campos do formulário para que nunca fiquem gravados com o último digitado
+    resetRegisterForm(false);
 
     if (gameState.mode === 'solo') {
       // Começa jogo solo imediatamente
@@ -2249,13 +2357,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (gameState.duelSubMode === 'create') {
         enterDuelLobby('create');
       } else {
-        const codeVal = (document.getElementById('input-duel-code').value || '').trim().toUpperCase();
-        if (!codeVal || codeVal.length !== 4) {
-          alert("Por favor, digite o código de 4 dígitos do duelo (ex: K7P2).");
-          document.getElementById('input-duel-code').focus();
-          return;
-        }
-        enterDuelLobby('join', codeVal);
+        enterDuelLobby('join', duelJoinCode);
       }
     }
   });
@@ -2263,6 +2365,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Botão Sair do Lobby
   document.getElementById('btn-leave-lobby').addEventListener('click', async () => {
     sounds.click();
+    resetRegisterForm(true);
     if (gameState.duel.unsubscribeRoom) {
       gameState.duel.unsubscribeRoom();
       gameState.duel.unsubscribeRoom = null;
@@ -2304,18 +2407,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // Jogar Novamente / Voltar ao Início
   document.getElementById('btn-solo-play-again').addEventListener('click', () => {
     sounds.click();
+    resetRegisterForm(true);
     showScreen('screen-mode');
   });
   document.getElementById('btn-solo-home').addEventListener('click', () => {
     sounds.click();
+    resetRegisterForm(true);
     showScreen('screen-home');
   });
   document.getElementById('btn-duel-play-again').addEventListener('click', () => {
     sounds.click();
+    resetRegisterForm(true);
     showScreen('screen-duel-mode');
   });
   document.getElementById('btn-duel-home').addEventListener('click', () => {
     sounds.click();
+    resetRegisterForm(true);
     showScreen('screen-home');
   });
 });
