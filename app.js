@@ -1949,13 +1949,13 @@ function toggleFullscreenProjection() {
 
   if (isFs) {
     if (fsIcon) fsIcon.textContent = '✕';
-    if (fsText) fsText.textContent = 'Sair da Tela Cheia';
+    if (fsText) fsText.textContent = '';
     if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
     }
   } else {
     if (fsIcon) fsIcon.textContent = '⛶';
-    if (fsText) fsText.textContent = 'Tela Cheia';
+    if (fsText) fsText.textContent = '';
     if (document.exitFullscreen && document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
@@ -1995,13 +1995,13 @@ function updateFullscreenButtonsState() {
   const globalBtn = document.getElementById('btn-global-fullscreen');
 
   if (globalIcon) globalIcon.textContent = isFullscreen ? '✕' : '⛶';
-  if (globalText) globalText.textContent = isFullscreen ? 'SAIR TELA CHEIA' : 'TELA CHEIA';
-  if (globalBtn) globalBtn.title = isFullscreen ? 'Sair da Tela Cheia' : 'Ativar Tela Cheia';
+  if (globalText) globalText.textContent = isFullscreen ? '' : '';
+  if (globalBtn) globalBtn.title = isFullscreen ? '' : '';
 
   const fsIcon = document.getElementById('fullscreen-icon');
   const fsText = document.getElementById('fullscreen-text');
   if (fsIcon) fsIcon.textContent = isFullscreen ? '✕' : '⛶';
-  if (fsText) fsText.textContent = isFullscreen ? 'Sair da Tela Cheia' : 'Tela Cheia';
+  if (fsText) fsText.textContent = isFullscreen ? '' : '';
 }
 
 function escapeHtml(str) {
