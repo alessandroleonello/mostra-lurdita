@@ -481,6 +481,13 @@ body {
   width: 100%;
 }
 
+.mode-selection-grid:has(> :only-child) {
+  grid-template-columns: 1fr;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .mode-card.arcade-mode-btn {
   background: #ffffff;
   border: 3px solid var(--primary-navy);
@@ -790,6 +797,8 @@ select.form-control {
   gap: 16px;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
+  user-select: none;
 }
 
 .duel-room-card::before {
@@ -1433,13 +1442,43 @@ select.form-control {
   color: #991b1b;
 }
 
-/* Grade Dupla Lado a Lado (Projetada) */
+/* Botão Excluir Linha Individual do Ranking */
+.btn-delete-row {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 5px 9px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete-row:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+}
+
+.btn-delete-row:active {
+  transform: scale(0.95);
+}
+
+/* Grade de Rankings (Responsiva e adaptável) */
 .rankings-dual-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 22px;
   width: 100%;
   margin-bottom: 20px;
+}
+
+.rankings-dual-grid:has(> :nth-child(2)) {
+  grid-template-columns: 1fr 1fr;
 }
 
 .ranking-panel-column {
@@ -1704,9 +1743,13 @@ body.fullscreen-projection .rankings-dual-grid {
   min-height: 0 !important;
   margin-bottom: 10px !important;
   display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
+  grid-template-columns: 1fr !important;
   gap: 22px !important;
   overflow: hidden !important;
+}
+
+body.fullscreen-projection .rankings-dual-grid:has(> :nth-child(2)) {
+  grid-template-columns: 1fr 1fr !important;
 }
 
 body.fullscreen-projection .ranking-panel-column {

@@ -778,7 +778,10 @@ function resetRegisterForm(resetPlayerState = false) {
   if (gradeGroup) gradeGroup.style.display = 'block';
 
   const duelCodeInput = document.getElementById('input-duel-code');
-  if (duelCodeInput) duelCodeInput.value = '';
+  if (duelCodeInput) {
+    duelCodeInput.value = '';
+    duelCodeInput.required = false;
+  }
 
   if (resetPlayerState) {
     gameState.player.name = '';
@@ -1163,10 +1166,12 @@ async function finishQuiz() {
 async function saveSoloScore(entry) {
   try {
     if (isFirebaseConnected && db) {
-      await db.collection("ranking_solo").add(entry);
+      const docRef = await db.collection("ranking_solo").add(entry);
+      entry.docId = docRef.id;
     } else {
       // LocalStorage fallback
       const currentList = getLocalSoloRankings();
+      entry.docId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
       currentList.push(entry);
       localStorage.setItem('lurdita_ranking_solo', JSON.stringify(currentList));
       if (broadcastChannel) broadcastChannel.postMessage({ type: 'RANKING_UPDATE' });
@@ -1174,6 +1179,7 @@ async function saveSoloScore(entry) {
   } catch (err) {
     console.error("Erro ao salvar ranking solo:", err);
     const currentList = getLocalSoloRankings();
+    entry.docId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
     currentList.push(entry);
     localStorage.setItem('lurdita_ranking_solo', JSON.stringify(currentList));
     if (broadcastChannel) broadcastChannel.postMessage({ type: 'RANKING_UPDATE' });
@@ -1190,12 +1196,18 @@ function getLocalSoloRankings() {
     const raw = localStorage.getItem('lurdita_ranking_solo');
     if (raw !== null) {
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
+      if (Array.isArray(parsed)) {
+        parsed.forEach((item, idx) => {
+          if (!item.docId) item.docId = 'local_' + (item.timestamp || idx) + '_' + idx;
+        });
+        return parsed;
+      }
+      return [];
     }
     return [
-      { name: "Lucas Rocha", school: "PEI Lurdita", score: 6, total: 6, timeSeconds: 68, timestamp: new Date().toISOString() },
-      { name: "Beatriz Lima", school: "EE Prof. José Roberto Furlaneto", score: 5, total: 6, timeSeconds: 74, timestamp: new Date().toISOString() },
-      { name: "Pedro Henrique", school: "PEI Lurdita", score: 5, total: 6, timeSeconds: 88, timestamp: new Date().toISOString() }
+      { docId: "local_def_1", name: "Lucas Rocha", school: "PEI Lurdita", score: 6, total: 6, timeSeconds: 68, timestamp: new Date().toISOString() },
+      { docId: "local_def_2", name: "Beatriz Lima", school: "EE Prof. José Roberto Furlaneto", score: 5, total: 6, timeSeconds: 74, timestamp: new Date().toISOString() },
+      { docId: "local_def_3", name: "Pedro Henrique", school: "PEI Lurdita", score: 5, total: 6, timeSeconds: 88, timestamp: new Date().toISOString() }
     ];
   } catch (e) {
     return [];
@@ -1207,7 +1219,11 @@ async function fetchSoloRankings() {
   if (isFirebaseConnected && db) {
     try {
       const snap = await db.collection("ranking_solo").get();
-      snap.forEach(doc => list.push(doc.data()));
+      snap.forEach(doc => {
+        const item = doc.data() || {};
+        item.docId = doc.id;
+        list.push(item);
+      });
     } catch (e) {
       console.warn("Erro ao buscar do Firestore solo, usando local:", e);
       list = getLocalSoloRankings();
@@ -1411,6 +1427,122 @@ async function handleConfirmReset(e) {
   }
 }
 
+// Funções do Modal de Exclusão Individual de Resultados
+let pendingDeleteTarget = null;
+
+function openDeleteSingleModal(target) {
+  pendingDeleteTarget = target;
+  sounds.click();
+  const modal = document.getElementById('modal-delete-single');
+  const nameEl = document.getElementById('delete-target-player-name');
+  const input = document.getElementById('input-delete-single-password');
+  const errorMsg = document.getElementById('delete-single-password-error');
+  const confirmBtn = document.getElementById('btn-confirm-delete-single');
+
+  if (nameEl) nameEl.textContent = target.name || 'Estudante';
+  if (input) input.value = '';
+  if (errorMsg) errorMsg.style.display = 'none';
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = '<span>🗑️</span> Confirmar Exclusão';
+  }
+
+  if (modal) {
+    modal.style.display = 'flex';
+    setTimeout(() => {
+      if (input) input.focus();
+    }, 100);
+  }
+}
+
+function closeDeleteSingleModal() {
+  sounds.click();
+  const modal = document.getElementById('modal-delete-single');
+  const input = document.getElementById('input-delete-single-password');
+  const errorMsg = document.getElementById('delete-single-password-error');
+
+  if (modal) modal.style.display = 'none';
+  if (input) input.value = '';
+  if (errorMsg) errorMsg.style.display = 'none';
+  pendingDeleteTarget = null;
+}
+
+async function handleConfirmDeleteSingle(e) {
+  if (e) e.preventDefault();
+  if (!pendingDeleteTarget) return;
+
+  const input = document.getElementById('input-delete-single-password');
+  const errorMsg = document.getElementById('delete-single-password-error');
+  const confirmBtn = document.getElementById('btn-confirm-delete-single');
+
+  if (!input) return;
+  const enteredPassword = input.value.trim();
+
+  // Senha do Professor: prof123
+  if (enteredPassword !== 'prof123') {
+    sounds.wrong();
+    if (errorMsg) {
+      errorMsg.style.display = 'flex';
+      errorMsg.classList.remove('shake');
+      void errorMsg.offsetWidth;
+      errorMsg.classList.add('shake');
+    }
+    input.focus();
+    input.select();
+    return;
+  }
+
+  try {
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span>⏳</span> Excluindo...';
+    }
+
+    const { docId, name, score, timeSeconds, timestamp } = pendingDeleteTarget;
+
+    // 1. Exclui do Firestore se conectado
+    if (isFirebaseConnected && db && docId && !docId.startsWith('local_')) {
+      try {
+        await db.collection("ranking_solo").doc(docId).delete();
+      } catch (err) {
+        console.warn("Aviso ao remover documento no Firestore:", err);
+      }
+    }
+
+    // 2. Exclui do localStorage
+    try {
+      const localList = getLocalSoloRankings();
+      const updatedList = localList.filter(item => {
+        if (docId && item.docId && item.docId === docId) return false;
+        if (item.name === name && item.score === score && item.timeSeconds === timeSeconds) {
+          if (timestamp && item.timestamp && item.timestamp === timestamp) return false;
+          return false;
+        }
+        return true;
+      });
+      localStorage.setItem('lurdita_ranking_solo', JSON.stringify(updatedList));
+      if (broadcastChannel) broadcastChannel.postMessage({ type: 'RANKING_UPDATE' });
+    } catch (err) {
+      console.warn("Erro ao atualizar localStorage após exclusão:", err);
+    }
+
+    sounds.coin();
+    closeDeleteSingleModal();
+    showToastNotice(`Resultado de ${name} excluído com sucesso!`, "🗑️");
+
+    // Recarrega os rankings imediatamente
+    const soloList = await fetchSoloRankings();
+    renderSoloRankingTable(soloList);
+  } catch (err) {
+    console.error("Erro ao excluir registro individual:", err);
+    alert("Ocorreu um erro ao excluir o registro. Tente novamente.");
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<span>🗑️</span> Confirmar Exclusão';
+    }
+  }
+}
+
 async function fetchDuelRankings() {
   let list = [];
   if (isFirebaseConnected && db) {
@@ -1469,6 +1601,7 @@ function showAvailableRoomsScreen() {
   sounds.select();
   gameState.mode = 'duel';
   gameState.duelSubMode = 'join';
+  gameState.duel.roomCode = ''; // Limpa código anterior ao retornar à listagem de salas
 
   showScreen('screen-duel-rooms');
   loadAvailableDuelRooms();
@@ -1521,7 +1654,9 @@ async function loadAvailableDuelRooms(showFeedbackToast = false) {
       snap.forEach(doc => {
         const data = doc.data();
         if (data && data.player1 && !data.player2 && (now - (data.updatedAt || now) < 900000)) {
-          roomsMap.set(data.roomCode || doc.id, data);
+          const roomCode = (data.roomCode || doc.id || '').toUpperCase().trim();
+          data.roomCode = roomCode;
+          roomsMap.set(roomCode, data);
         }
       });
     } catch (e) {
@@ -1539,8 +1674,10 @@ async function loadAvailableDuelRooms(showFeedbackToast = false) {
           if (raw) {
             const data = JSON.parse(raw);
             if (data && data.status === 'waiting' && data.player1 && !data.player2 && (now - (data.updatedAt || now) < 900000)) {
-              if (!roomsMap.has(data.roomCode)) {
-                roomsMap.set(data.roomCode, data);
+              const code = (data.roomCode || key.replace('lurdita_room_', '') || '').toUpperCase().trim();
+              if (code && !roomsMap.has(code)) {
+                data.roomCode = code;
+                roomsMap.set(code, data);
               }
             }
           }
@@ -1587,10 +1724,10 @@ async function loadAvailableDuelRooms(showFeedbackToast = false) {
     const p1Name = escapeHtml(p1.name || 'Jogador 1');
     const p1School = escapeHtml(p1.school || '-');
     const p1Grade = p1.grade ? ` • ${escapeHtml(p1.grade)}` : '';
-    const roomCode = escapeHtml(room.roomCode || '----');
+    const roomCode = escapeHtml((room.roomCode || '').toUpperCase().trim());
 
     return `
-      <div class="duel-room-card arcade-fighter-card">
+      <div class="duel-room-card arcade-fighter-card" data-code="${roomCode}" data-host="${p1Name}" role="button" tabindex="0">
         <div class="room-card-info">
           <div class="room-host-badge">👑 JOGADOR 1 (CRIADOR DA SALA)</div>
           <div class="room-host-name">${p1Name}</div>
@@ -1604,13 +1741,20 @@ async function loadAvailableDuelRooms(showFeedbackToast = false) {
     `;
   }).join('');
 
-  // Ativa os cliques nos botões de desafiar de cada card
-  container.querySelectorAll('.btn-join-room-card').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const code = btn.getAttribute('data-code');
-      const host = btn.getAttribute('data-host') || 'Colega';
+  // Ativa os cliques em todo o card ou no botão interno
+  container.querySelectorAll('.duel-room-card').forEach(card => {
+    const selectCard = (e) => {
+      e.preventDefault();
+      const code = card.getAttribute('data-code');
+      const host = card.getAttribute('data-host') || 'Colega';
       handleSelectDuelRoom(code, host);
+    };
+
+    card.addEventListener('click', selectCard);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        selectCard(e);
+      }
     });
   });
 }
@@ -1620,14 +1764,16 @@ function handleSelectDuelRoom(roomCode, hostName) {
   sounds.select();
   stopRoomsListPolling();
 
+  const cleanCode = (roomCode || '').toString().trim().toUpperCase();
   gameState.mode = 'duel';
   gameState.duelSubMode = 'join';
-  gameState.duel.roomCode = roomCode;
+  gameState.duel.roomCode = cleanCode;
 
   // Preenche o campo de código do duelo (mantendo-o oculto para não ter que digitar)
   const duelInput = document.getElementById('input-duel-code');
   if (duelInput) {
-    duelInput.value = roomCode;
+    duelInput.value = cleanCode;
+    duelInput.required = false;
   }
   const groupDuelCode = document.getElementById('group-duel-code');
   if (groupDuelCode) {
@@ -1636,12 +1782,12 @@ function handleSelectDuelRoom(roomCode, hostName) {
 
   // Se o aluno já tiver seu nome e escola informados nesta sessão, entra imediatamente no lobby
   if (gameState.player.name && gameState.player.school) {
-    enterDuelLobby('join', roomCode);
+    enterDuelLobby('join', cleanCode);
     return;
   }
 
   // Caso ainda não tenha inserido o nome, abre tela de cadastro com destaque de quem está desafiando
-  document.getElementById('register-badge-mode').innerHTML = `<span>🎯</span> DESAFIANDO: ${escapeHtml(hostName).toUpperCase()} (SALA ${roomCode})`;
+  document.getElementById('register-badge-mode').innerHTML = `<span>🎯</span> DESAFIANDO: ${escapeHtml(hostName).toUpperCase()} (SALA #${cleanCode})`;
   document.getElementById('register-title').textContent = 'INSIRA SEU NICKNAME';
   const regDesc = document.getElementById('register-desc');
   if (regDesc) {
@@ -2248,20 +2394,20 @@ async function loadRankingsUI() {
   const duelTbody = document.getElementById('ranking-duel-tbody');
 
   if (soloTbody && !soloTbody.children.length) {
-    soloTbody.innerHTML = '<tr><td colspan="4" class="empty-state">Carregando classificação individual...</td></tr>';
+    soloTbody.innerHTML = '<tr><td colspan="5" class="empty-state">Carregando classificação individual...</td></tr>';
   }
   if (duelTbody && !duelTbody.children.length) {
     duelTbody.innerHTML = '<tr><td colspan="4" class="empty-state">Carregando duelos ao vivo...</td></tr>';
   }
 
-  // Busca e renderiza ambos os rankings simultaneamente
-  const [soloList, duelList] = await Promise.all([
-    fetchSoloRankings(),
-    fetchDuelRankings()
-  ]);
-
+  // Busca e renderiza os rankings
+  const soloList = await fetchSoloRankings();
   renderSoloRankingTable(soloList);
-  renderDuelRankingTable(duelList);
+
+  if (duelTbody) {
+    const duelList = await fetchDuelRankings();
+    renderDuelRankingTable(duelList);
+  }
 }
 
 function renderSoloRankingTable(list) {
@@ -2269,7 +2415,7 @@ function renderSoloRankingTable(list) {
   if (!soloTbody) return;
 
   if (!list || list.length === 0) {
-    soloTbody.innerHTML = '<tr><td colspan="4" class="empty-state">Nenhum resultado registrado ainda. Seja o primeiro a jogar!</td></tr>';
+    soloTbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhum resultado registrado ainda. Seja o primeiro a jogar!</td></tr>';
     return;
   }
 
@@ -2281,13 +2427,15 @@ function renderSoloRankingTable(list) {
     else badge = `<span class="rank-pos">${idx + 1}º</span>`;
 
     const gradeText = item.grade ? ` • ${escapeHtml(item.grade)}` : '';
+    const safeDocId = escapeHtml(item.docId || '');
+    const safeName = escapeHtml(item.name || '');
 
     return `
       <tr>
         <td style="text-align: center;">${badge}</td>
         <td>
           <div class="player-cell">
-            <span class="player-name">${escapeHtml(item.name)}</span>
+            <span class="player-name">${safeName}</span>
             <span class="player-school-tag">🏫 ${escapeHtml(item.school)}${gradeText}</span>
           </div>
         </td>
@@ -2296,9 +2444,27 @@ function renderSoloRankingTable(list) {
           ${item.arcadeScore ? `<div style="font-size:0.75rem; color:#b45309; font-family:var(--font-pixel); margin-top:2px;">${item.arcadeScore.toLocaleString('pt-BR')} PTS</div>` : ''}
         </td>
         <td style="text-align: center; font-weight: 600;">${formatTime(item.timeSeconds)}</td>
+        <td style="text-align: center;">
+          <button type="button" class="btn-delete-row" data-id="${safeDocId}" data-name="${safeName}" data-score="${item.score}" data-time="${item.timeSeconds}" data-timestamp="${item.timestamp || ''}" title="Excluir este resultado (requer senha do professor)">
+            🗑️
+          </button>
+        </td>
       </tr>
     `;
   }).join('');
+
+  // Ativa os botões de exclusão individual
+  soloTbody.querySelectorAll('.btn-delete-row').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const docId = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name');
+      const score = Number(btn.getAttribute('data-score'));
+      const timeSeconds = Number(btn.getAttribute('data-time'));
+      const timestamp = btn.getAttribute('data-timestamp') || '';
+      openDeleteSingleModal({ docId, name, score, timeSeconds, timestamp });
+    });
+  });
 }
 
 function renderDuelRankingTable(list) {
@@ -2452,7 +2618,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-open-ranking').addEventListener('click', loadRankingsUI);
   document.getElementById('btn-home-ranking').addEventListener('click', loadRankingsUI);
   document.getElementById('btn-solo-view-rankings').addEventListener('click', loadRankingsUI);
-  document.getElementById('btn-duel-view-rankings').addEventListener('click', loadRankingsUI);
+  const btnDuelRank = document.getElementById('btn-duel-view-rankings');
+  if (btnDuelRank) btnDuelRank.addEventListener('click', loadRankingsUI);
 
   document.getElementById('btn-ranking-back').addEventListener('click', () => {
     sounds.click();
@@ -2501,12 +2668,42 @@ document.addEventListener('DOMContentLoaded', () => {
     formReset.addEventListener('submit', handleConfirmReset);
   }
 
+  // Modal de Exclusão Individual de Resultado (Área do Professor)
+  const modalDelete = document.getElementById('modal-delete-single');
+  if (modalDelete) {
+    modalDelete.addEventListener('click', (e) => {
+      if (e.target === modalDelete) {
+        closeDeleteSingleModal();
+      }
+    });
+  }
+
+  const btnModalDeleteClose = document.getElementById('btn-modal-delete-close');
+  if (btnModalDeleteClose) {
+    btnModalDeleteClose.addEventListener('click', closeDeleteSingleModal);
+  }
+
+  const btnCancelDeleteSingle = document.getElementById('btn-cancel-delete-single');
+  if (btnCancelDeleteSingle) {
+    btnCancelDeleteSingle.addEventListener('click', closeDeleteSingleModal);
+  }
+
+  const formDeleteSingle = document.getElementById('form-delete-single');
+  if (formDeleteSingle) {
+    formDeleteSingle.addEventListener('submit', handleConfirmDeleteSingle);
+  }
+
   // Tecla Escape para fechar modal ou F para alternar tela cheia a qualquer momento
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const modal = document.getElementById('modal-reset-rankings');
       if (modal && modal.style.display !== 'none') {
         closeResetRankingsModal();
+        return;
+      }
+      const modalDel = document.getElementById('modal-delete-single');
+      if (modalDel && modalDel.style.display !== 'none') {
+        closeDeleteSingleModal();
         return;
       }
     }
@@ -2557,12 +2754,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100);
   });
 
-  // Escolha do Modo Duelo -> Abre tela intermediária com opções "Criar" ou "Entrar"
-  document.getElementById('card-mode-duel').addEventListener('click', () => {
-    sounds.select();
-    gameState.mode = 'duel';
-    showScreen('screen-duel-mode');
-  });
+  // Escolha do Modo Duelo (Guardado para caso seja reativado no futuro)
+  const cardModeDuel = document.getElementById('card-mode-duel');
+  if (cardModeDuel) {
+    cardModeDuel.addEventListener('click', () => {
+      sounds.select();
+      gameState.mode = 'duel';
+      showScreen('screen-duel-mode');
+    });
+  }
 
   // Voltar da tela de opções de Duelo para Escolha de Modo
   const btnBackFromDuel = document.getElementById('btn-back-from-duel-mode');
@@ -2751,10 +2951,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let duelJoinCode = '';
     if (gameState.mode === 'duel' && gameState.duelSubMode === 'join') {
-      duelJoinCode = (document.getElementById('input-duel-code').value || '').trim().toUpperCase();
+      const codeFromState = (gameState.duel && gameState.duel.roomCode) ? gameState.duel.roomCode.trim().toUpperCase() : '';
+      const codeFromInput = (document.getElementById('input-duel-code') ? document.getElementById('input-duel-code').value : '').trim().toUpperCase();
+      
+      duelJoinCode = codeFromState || codeFromInput;
+
+      // Mantém estado e input sincronizados
+      if (duelJoinCode) {
+        gameState.duel.roomCode = duelJoinCode;
+        const codeInput = document.getElementById('input-duel-code');
+        if (codeInput) {
+          codeInput.value = duelJoinCode;
+          codeInput.required = false;
+        }
+      }
+
       if (!duelJoinCode || duelJoinCode.length !== 4) {
-        alert("Por favor, digite o código de 4 dígitos do duelo (ex: K7P2).");
-        document.getElementById('input-duel-code').focus();
+        alert("Por favor, selecione uma sala aberta na lista ou digite o código de 4 dígitos do duelo (ex: K7P2).");
+        const groupDuelCode = document.getElementById('group-duel-code');
+        if (groupDuelCode) groupDuelCode.style.display = 'block';
+        const codeInput = document.getElementById('input-duel-code');
+        if (codeInput) {
+          codeInput.required = true;
+          codeInput.focus();
+        }
         return;
       }
     }
@@ -2784,35 +3004,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Botão Sair do Lobby
-  document.getElementById('btn-leave-lobby').addEventListener('click', async () => {
-    sounds.click();
-    stopLobbyPolling();
-    resetRegisterForm(true);
-    if (gameState.duel.unsubscribeRoom) {
-      gameState.duel.unsubscribeRoom();
-      gameState.duel.unsubscribeRoom = null;
-    }
-
-    // Se for o host (Player 1) saindo enquanto espera, podemos remover a sala
-    if (gameState.duel.isPlayer1 && gameState.duel.roomCode) {
-      if (isFirebaseConnected && db && gameState.duel.roomRef) {
-        try {
-          await gameState.duel.roomRef.delete();
-        } catch (e) {
-          console.warn("Aviso ao remover sala no Firestore:", e);
-        }
+  // Botão Sair do Lobby (Guarda para reativação)
+  const btnLeaveLobby = document.getElementById('btn-leave-lobby');
+  if (btnLeaveLobby) {
+    btnLeaveLobby.addEventListener('click', async () => {
+      sounds.click();
+      stopLobbyPolling();
+      resetRegisterForm(true);
+      if (gameState.duel.unsubscribeRoom) {
+        gameState.duel.unsubscribeRoom();
+        gameState.duel.unsubscribeRoom = null;
       }
-      localStorage.removeItem('lurdita_room_' + gameState.duel.roomCode);
-    }
 
-    showScreen('screen-duel-mode');
-  });
+      if (gameState.duel.isPlayer1 && gameState.duel.roomCode) {
+        if (isFirebaseConnected && db && gameState.duel.roomRef) {
+          try {
+            await gameState.duel.roomRef.delete();
+          } catch (e) {
+            console.warn("Aviso ao remover sala no Firestore:", e);
+          }
+        }
+        localStorage.removeItem('lurdita_room_' + gameState.duel.roomCode);
+      }
 
-  // Botão Iniciar Duelo no Lobby
-  document.getElementById('btn-start-duel').addEventListener('click', () => {
-    triggerStartDuel();
-  });
+      showScreen('screen-duel-mode');
+    });
+  }
+
+  // Botão Iniciar Duelo no Lobby (Guarda para reativação)
+  const btnStartDuel = document.getElementById('btn-start-duel');
+  if (btnStartDuel) {
+    btnStartDuel.addEventListener('click', () => {
+      triggerStartDuel();
+    });
+  }
 
   // Botão Próxima Pergunta
   document.getElementById('btn-next-question').addEventListener('click', handleNextQuestion);
@@ -2828,14 +3053,22 @@ document.addEventListener('DOMContentLoaded', () => {
     resetRegisterForm(true);
     showScreen('screen-home');
   });
-  document.getElementById('btn-duel-play-again').addEventListener('click', () => {
-    sounds.click();
-    resetRegisterForm(true);
-    showScreen('screen-duel-mode');
-  });
-  document.getElementById('btn-duel-home').addEventListener('click', () => {
-    sounds.click();
-    resetRegisterForm(true);
-    showScreen('screen-home');
-  });
+
+  const btnDuelPlayAgain = document.getElementById('btn-duel-play-again');
+  if (btnDuelPlayAgain) {
+    btnDuelPlayAgain.addEventListener('click', () => {
+      sounds.click();
+      resetRegisterForm(true);
+      showScreen('screen-duel-mode');
+    });
+  }
+
+  const btnDuelHome = document.getElementById('btn-duel-home');
+  if (btnDuelHome) {
+    btnDuelHome.addEventListener('click', () => {
+      sounds.click();
+      resetRegisterForm(true);
+      showScreen('screen-home');
+    });
+  }
 });

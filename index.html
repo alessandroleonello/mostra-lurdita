@@ -118,7 +118,7 @@
                             <div class="arcade-select-indicator">▶ PRESS TO SELECT</div>
                         </div>
 
-                        <!-- Card 2 Jogadores -->
+                        <!-- Card 2 Jogadores [MODO DUELO DESATIVADO TEMPORARIAMENTE]
                         <div class="mode-card mode-duel arcade-mode-btn" id="card-mode-duel">
                             <span class="mode-badge pixel-badge" style="background:#4aa3df; color:#fff;">2
                                 PLAYERS</span>
@@ -128,6 +128,7 @@
                                 escolas!</p>
                             <div class="arcade-select-indicator">▶ PRESS TO SELECT</div>
                         </div>
+                        -->
                     </div>
 
                     <button id="btn-back-to-home" class="btn-back arcade-back-btn">
@@ -137,8 +138,8 @@
             </section>
 
             <!-- =================================================================
-           TELA 2.5: ESCOLHA DO DUELO (CRIAR OU ENTRAR)
-           ================================================================= -->
+            TELA 2.5: ESCOLHA DO DUELO E TELA 2.6: SALAS DE DUELO [COMENTADO TEMPORARIAMENTE]
+            =================================================================
             <section id="screen-duel-mode" class="screen">
                 <div class="main-card arcade-cabinet-card">
                     <div class="hero-badge arcade-badge-blink"
@@ -151,7 +152,6 @@
                     </p>
 
                     <div class="mode-selection-grid">
-                        <!-- Card Criar Duelo -->
                         <div class="mode-card mode-duel arcade-mode-btn" id="card-duel-create">
                             <span class="mode-badge pixel-badge" style="background:#f59e0b; color:#1e1302;">HOST</span>
                             <span class="mode-icon">👑</span>
@@ -160,7 +160,6 @@
                             <div class="arcade-select-indicator">▶ PRESS TO CREATE</div>
                         </div>
 
-                        <!-- Card Entrar em Duelo -->
                         <div class="mode-card mode-duel arcade-mode-btn" id="card-duel-join">
                             <span class="mode-badge pixel-badge" style="background:#10b981; color:#fff;">JOIN</span>
                             <span class="mode-icon">🎯</span>
@@ -176,9 +175,6 @@
                 </div>
             </section>
 
-            <!-- =================================================================
-           TELA 2.6: SALAS DE DUELO DISPONÍVEIS (LISTA AO VIVO DE OPONENTES)
-           ================================================================= -->
             <section id="screen-duel-rooms" class="screen">
                 <div class="main-card arcade-cabinet-card" style="max-width: 720px;">
                     <div class="hero-badge arcade-badge-blink"
@@ -193,7 +189,6 @@
                         Toque no colega que você quer desafiar agora para entrar no duelo:
                     </p>
 
-                    <!-- Barra de Ações Rápidas da Lista -->
                     <div class="duel-rooms-header-actions">
                         <button type="button" id="btn-refresh-rooms" class="btn-secondary arcade-btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
                             <span>🔄</span> Atualizar Lista
@@ -203,12 +198,9 @@
                         </span>
                     </div>
 
-                    <!-- Container da Lista de Salas Dinâmicas -->
                     <div id="duel-rooms-container" class="duel-rooms-list" style="margin: 18px 0; min-height: 180px;">
-                        <!-- Inserido dinamicamente via JavaScript -->
                     </div>
 
-                    <!-- Rodapé com opção manual de código e botão voltar -->
                     <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%;">
                         <button type="button" id="btn-toggle-manual-code" class="arcade-link-btn" style="background:none; border:none; color:var(--primary-navy); cursor:pointer; font-size:0.92rem; text-decoration:underline; font-weight:600;">
                             ⌨️ Prefere digitar o código de 4 dígitos manualmente? Clique aqui
@@ -220,6 +212,7 @@
                     </div>
                 </div>
             </section>
+            -->
 
             <!-- =================================================================
            TELA 3: CADASTRO DO JOGADOR (Nome e Escola)
@@ -310,8 +303,8 @@
             </section>
 
             <!-- =================================================================
-           TELA 4: LOBBY DE ESPERA (Apenas para 2 Jogadores)
-           ================================================================= -->
+            TELA 4: LOBBY DE ESPERA [COMENTADO TEMPORARIAMENTE - DESATIVADO]
+            =================================================================
             <section id="screen-lobby" class="screen">
                 <div class="main-card arcade-cabinet-card">
                     <div class="hero-badge arcade-badge-blink"
@@ -325,7 +318,6 @@
                         Aguardando o Player 2 conectar na arena...
                     </p>
 
-                    <!-- Caixa de Código do Duelo Arcade (4 Dígitos) -->
                     <div class="arcade-code-box" id="lobby-code-box">
                         <div class="code-box-header">
                             <span class="code-icon">🔑</span>
@@ -343,7 +335,6 @@
                         </div>
 
                         <div class="lobby-players-grid">
-                            <!-- Jogador 1 -->
                             <div class="lobby-player-card ready arcade-fighter-card" id="card-lobby-p1">
                                 <div class="p-role pixel-text">PLAYER 1 (HOST)</div>
                                 <div class="p-name" id="lobby-p1-name">Aguardando...</div>
@@ -352,7 +343,6 @@
 
                             <div class="lobby-vs-badge arcade-vs-badge">VS</div>
 
-                            <!-- Jogador 2 -->
                             <div class="lobby-player-card arcade-fighter-card" id="card-lobby-p2">
                                 <div class="p-role pixel-text">PLAYER 2 (CHALLENGER)</div>
                                 <div class="p-name" id="lobby-p2-name">Aguardando entrada...</div>
@@ -382,6 +372,7 @@
                     </button>
                 </div>
             </section>
+            -->
 
             <!-- =================================================================
            TELA 5: ARENA DO QUIZ (HUD ARCADE COM PONTOS, COMBOS E CRONÔMETRO)
@@ -501,12 +492,10 @@
             </section>
 
             <!-- =================================================================
-           TELA 7: RESULTADO 2 JOGADORES (VERSUS BATTLE RESULT)
-           ================================================================= -->
+            TELA 7: RESULTADO 2 JOGADORES [COMENTADO TEMPORARIAMENTE - DESATIVADO]
+            =================================================================
             <section id="screen-result-duel" class="screen">
                 <div class="main-card arcade-cabinet-card">
-
-                    <!-- Estado de Aguardando o Oponente Finalizar -->
                     <div id="duel-waiting-opponent" style="display: none;">
                         <div class="lobby-pulse" style="margin: 0 auto 20px;">⏳</div>
                         <div class="arcade-stage-clear-badge">AGUARDANDO FINALIZAÇÃO...</div>
@@ -519,7 +508,6 @@
                         </p>
                     </div>
 
-                    <!-- Estado de Resultado Final com o Vencedor -->
                     <div id="duel-final-result" style="display: block;">
                         <div class="arcade-stage-clear-badge">★ K.O.! TEMOS UM CAMPEÃO! ★</div>
                         <div class="result-trophy arcade-trophy-bounce" id="duel-trophy-icon">🏆</div>
@@ -530,32 +518,25 @@
 
                         <div class="duel-versus-result arcade-versus-box">
                             <div class="duel-players-comparison">
-
-                                <!-- Jogador 1 -->
                                 <div class="duel-player-res arcade-fighter-card" id="duel-card-p1">
                                     <div class="res-crown" id="p1-crown">👑</div>
                                     <div class="res-name" id="duel-res-p1-name">Jogador 1</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="duel-res-p1-school">
-                                        Escola 1</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="duel-res-p1-school">Escola 1</div>
                                     <div class="res-score" id="duel-res-p1-stats">Acertos: 9/10 • 01:20</div>
                                 </div>
 
                                 <div class="lobby-vs-badge arcade-vs-badge">VS</div>
 
-                                <!-- Jogador 2 -->
                                 <div class="duel-player-res arcade-fighter-card" id="duel-card-p2">
                                     <div class="res-crown" id="p2-crown">👑</div>
                                     <div class="res-name" id="duel-res-p2-name">Jogador 2</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="duel-res-p2-school">
-                                        Escola 2</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="duel-res-p2-school">Escola 2</div>
                                     <div class="res-score" id="duel-res-p2-stats">Acertos: 7/10 • 01:45</div>
                                 </div>
-
                             </div>
                         </div>
 
-                        <div
-                            style="display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 20px;">
+                        <div style="display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 20px;">
                             <button id="btn-duel-view-rankings" class="btn-primary-large arcade-push-btn">
                                 <span>⚔️</span> TABELA DE RECORDES DOS DUELOS
                             </button>
@@ -566,11 +547,10 @@
                                 ◀ Menu Principal
                             </button>
                         </div>
-
                     </div>
-
                 </div>
             </section>
+            -->
 
             <!-- =================================================================
            TELA 8: RANKINGS (PAINEL AO VIVO PARA PROJEÇÃO NA PAREDE)
@@ -626,11 +606,12 @@
                                             <th>Estudante</th>
                                             <th style="text-align: center;">Acertos / Pontos</th>
                                             <th style="text-align: center; width: 95px;">Tempo</th>
+                                            <th style="text-align: center; width: 65px;">Ação</th>
                                         </tr>
                                     </thead>
                                     <tbody id="ranking-solo-tbody">
                                         <tr>
-                                            <td colspan="4" class="empty-state">Carregando classificação individual...
+                                            <td colspan="5" class="empty-state">Carregando classificação individual...
                                             </td>
                                         </tr>
                                     </tbody>
@@ -638,13 +619,12 @@
                             </div>
                         </div>
 
-                        <!-- Coluna 2: Duelos em Tempo Real (2 Jogadores) -->
+                        <!-- Coluna 2: Duelos em Tempo Real (2 Jogadores) [COMENTADO TEMPORARIAMENTE - DESATIVADO]
                         <div class="ranking-panel-column">
                             <div class="panel-header panel-header-duel">
                                 <div class="panel-icon">⚔️</div>
                                 <div>
                                     <h3 class="panel-title">Ranking dos Duelos (2 Jogadores)</h3>
-                                    
                                 </div>
                             </div>
 
@@ -666,6 +646,7 @@
                                 </table>
                             </div>
                         </div>
+                        -->
 
                     </div>
 
@@ -724,6 +705,43 @@
                     </button>
                     <button type="submit" id="btn-confirm-reset" class="btn-danger-confirm" style="padding: 10px 22px;">
                         <span>🗑️</span> Confirmar e Zerar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação e Senha para Excluir Resultado Individual -->
+    <div id="modal-delete-single" class="arcade-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-delete-single-title">
+        <div class="arcade-modal-card">
+            <div class="arcade-modal-header">
+                <div class="arcade-modal-icon">🗑️</div>
+                <div>
+                    <h3 id="modal-delete-single-title" class="arcade-modal-title">Excluir Resultado Individual</h3>
+                    <p class="arcade-modal-sub">Área do Professor • Autorização necessária</p>
+                </div>
+                <button type="button" id="btn-modal-delete-close" class="arcade-modal-close" aria-label="Fechar modal">&times;</button>
+            </div>
+            <form id="form-delete-single" onsubmit="return false;">
+                <div class="arcade-modal-body">
+                    <p class="arcade-modal-warning" style="background:#fee2e2; border-color:#fca5a5; color:#991b1b;">
+                        ⚠️ Deseja realmente remover o resultado de <strong id="delete-target-player-name" style="color:#7f1d1d;">-</strong> do ranking?
+                    </p>
+                    <div class="form-group arcade-form-group" style="margin-top: 16px; margin-bottom: 6px;">
+                        <label for="input-delete-single-password">DIGITE A SENHA DO PROFESSOR:</label>
+                        <input type="password" id="input-delete-single-password" class="form-control arcade-input"
+                            placeholder="Digite a senha..." autocomplete="current-password" required>
+                        <div id="delete-single-password-error" class="arcade-error-msg" style="display: none;">
+                            ❌ Senha incorreta! Digite a senha correta (prof123) para autorizar.
+                        </div>
+                    </div>
+                </div>
+                <div class="arcade-modal-actions">
+                    <button type="button" id="btn-cancel-delete-single" class="btn-secondary arcade-btn-secondary" style="padding: 10px 18px;">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btn-confirm-delete-single" class="btn-danger-confirm" style="padding: 10px 22px;">
+                        <span>🗑️</span> Confirmar Exclusão
                     </button>
                 </div>
             </form>
