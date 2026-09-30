@@ -588,13 +588,12 @@
                     <!-- Grade Dupla: Ambos os Rankings Renderizados Simultaneamente -->
                     <div class="rankings-dual-grid">
 
-                        <!-- Coluna 1: Classificação Individual (1 Jogador) -->
+                        <!-- Coluna 1: Classificação Geral (Melhores Pontuações) -->
                         <div class="ranking-panel-column">
                             <div class="panel-header panel-header-solo">
-                                <div class="panel-icon">⭐</div>
+                                <div class="panel-icon">🏆</div>
                                 <div>
-                                    <h3 class="panel-title">Ranking Individual (1 Jogador)</h3>
-                            
+                                    <h3 class="panel-title">Ranking Geral (High Scores)</h3>
                                 </div>
                             </div>
 
@@ -611,7 +610,7 @@
                                     </thead>
                                     <tbody id="ranking-solo-tbody">
                                         <tr>
-                                            <td colspan="5" class="empty-state">Carregando classificação individual...
+                                            <td colspan="5" class="empty-state">Carregando classificação geral...
                                             </td>
                                         </tr>
                                     </tbody>
@@ -619,7 +618,36 @@
                             </div>
                         </div>
 
-                        <!-- Coluna 2: Duelos em Tempo Real (2 Jogadores) [COMENTADO TEMPORARIAMENTE - DESATIVADO]
+                        <!-- Coluna 2: Últimas Partidas Realizadas (Com a posição conquistada no Ranking) -->
+                        <div class="ranking-panel-column">
+                            <div class="panel-header" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-bottom-color: #bbf7d0;">
+                                <div class="panel-icon">⏱️</div>
+                                <div>
+                                    <h3 class="panel-title">Últimas Partidas (Em Tempo Real)</h3>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive projection-table-wrap">
+                                <table class="ranking-table projection-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 75px; text-align: center;">Posição</th>
+                                            <th>Estudante</th>
+                                            <th style="text-align: center;">Acertos / Pontos</th>
+                                            <th style="text-align: center; width: 95px;">Horário</th>
+                                            <th style="text-align: center; width: 65px;">Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ranking-recent-tbody">
+                                        <tr>
+                                            <td colspan="5" class="empty-state">Carregando partidas recentes...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Coluna 3: Duelos em Tempo Real (2 Jogadores) [COMENTADO TEMPORARIAMENTE - DESATIVADO]
                         <div class="ranking-panel-column">
                             <div class="panel-header panel-header-duel">
                                 <div class="panel-icon">⚔️</div>

@@ -70,12 +70,17 @@ function setupRealtimeRankingListeners() {
   // 1. Escuta Solo
   db.collection("ranking_solo").onSnapshot((snapshot) => {
     const list = [];
-    snapshot.forEach(doc => list.push(doc.data()));
+    snapshot.forEach(doc => {
+      const item = doc.data() || {};
+      item.docId = doc.id;
+      list.push(item);
+    });
     list.sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
       return a.timeSeconds - b.timeSeconds;
     });
     renderSoloRankingTable(list);
+    renderRecentRankingTable(list);
   }, err => console.warn("Erro no listener ranking_solo:", err));
 
   // 2. Escuta Duelos
@@ -1328,6 +1333,7 @@ async function resetAllRankings() {
 
   // 4. Renderiza imediatamente as tabelas vazias na interface
   renderSoloRankingTable([]);
+  renderRecentRankingTable([]);
   renderDuelRankingTable([]);
 }
 
@@ -1533,6 +1539,7 @@ async function handleConfirmDeleteSingle(e) {
     // Recarrega os rankings imediatamente
     const soloList = await fetchSoloRankings();
     renderSoloRankingTable(soloList);
+    renderRecentRankingTable(soloList);
   } catch (err) {
     console.error("Erro ao excluir registro individual:", err);
     alert("Ocorreu um erro ao excluir o registro. Tente novamente.");
@@ -2391,10 +2398,14 @@ async function loadRankingsUI() {
 
   // Renderiza imediatamente estado de carregamento se estiver vazio
   const soloTbody = document.getElementById('ranking-solo-tbody');
+  const recentTbody = document.getElementById('ranking-recent-tbody');
   const duelTbody = document.getElementById('ranking-duel-tbody');
 
   if (soloTbody && !soloTbody.children.length) {
-    soloTbody.innerHTML = '<tr><td colspan="5" class="empty-state">Carregando classificação individual...</td></tr>';
+    soloTbody.innerHTML = '<tr><td colspan="5" class="empty-state">Carregando classificação geral...</td></tr>';
+  }
+  if (recentTbody && !recentTbody.children.length) {
+    recentTbody.innerHTML = '<tr><td colspan="5" class="empty-state">Carregando partidas recentes...</td></tr>';
   }
   if (duelTbody && !duelTbody.children.length) {
     duelTbody.innerHTML = '<tr><td colspan="4" class="empty-state">Carregando duelos ao vivo...</td></tr>';
@@ -2403,6 +2414,7 @@ async function loadRankingsUI() {
   // Busca e renderiza os rankings
   const soloList = await fetchSoloRankings();
   renderSoloRankingTable(soloList);
+  renderRecentRankingTable(soloList);
 
   if (duelTbody) {
     const duelList = await fetchDuelRankings();
@@ -2455,6 +2467,85 @@ function renderSoloRankingTable(list) {
 
   // Ativa os botões de exclusão individual
   soloTbody.querySelectorAll('.btn-delete-row').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const docId = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name');
+      const score = Number(btn.getAttribute('data-score'));
+      const timeSeconds = Number(btn.getAttribute('data-time'));
+      const timestamp = btn.getAttribute('data-timestamp') || '';
+      openDeleteSingleModal({ docId, name, score, timeSeconds, timestamp });
+    });
+  });
+}
+
+function renderRecentRankingTable(soloList) {
+  const recentTbody = document.getElementById('ranking-recent-tbody');
+  if (!recentTbody) return;
+
+  if (!soloList || soloList.length === 0) {
+    recentTbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhuma partida finalizada ainda. Seja o primeiro a jogar!</td></tr>';
+    return;
+  }
+
+  // Mapeia a posição exata de cada partida no Ranking Geral (1º, 2º, 3º, etc.)
+  const rankMap = new Map();
+  soloList.forEach((item, index) => {
+    const key = item.docId || `${item.name}_${item.score}_${item.timeSeconds}_${item.timestamp || ''}`;
+    rankMap.set(key, index + 1);
+  });
+
+  // Ordena cópia por data decrescente (mais recentes primeiro)
+  const recentList = [...soloList];
+  recentList.sort((a, b) => {
+    const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return timeB - timeA;
+  });
+
+  recentTbody.innerHTML = recentList.map(item => {
+    const key = item.docId || `${item.name}_${item.score}_${item.timeSeconds}_${item.timestamp || ''}`;
+    const pos = rankMap.get(key) || '-';
+
+    let posBadge = '';
+    if (pos === 1) posBadge = '<span class="rank-pos rank-badge-1">🥇 1º</span>';
+    else if (pos === 2) posBadge = '<span class="rank-pos rank-badge-2">🥈 2º</span>';
+    else if (pos === 3) posBadge = '<span class="rank-pos rank-badge-3">🥉 3º</span>';
+    else posBadge = `<span class="rank-pos" style="background:#e0f2fe; color:#0369a1; border:1px solid #7dd3fc; font-weight:700;">#${pos}º</span>`;
+
+    const gradeText = item.grade ? ` • ${escapeHtml(item.grade)}` : '';
+    const safeDocId = escapeHtml(item.docId || '');
+    const safeName = escapeHtml(item.name || '');
+    const timeFormatted = item.timestamp ? new Date(item.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '-';
+
+    return `
+      <tr>
+        <td style="text-align: center;">${posBadge}</td>
+        <td>
+          <div class="player-cell">
+            <span class="player-name">${safeName}</span>
+            <span class="player-school-tag">🏫 ${escapeHtml(item.school)}${gradeText}</span>
+          </div>
+        </td>
+        <td style="text-align: center;">
+          <span style="font-weight:700; color:var(--primary-navy);">${item.score}/${item.total || QUESTIONS_PER_GAME}</span>
+          ${item.arcadeScore ? `<div style="font-size:0.75rem; color:#b45309; font-family:var(--font-pixel); margin-top:2px;">${item.arcadeScore.toLocaleString('pt-BR')} PTS</div>` : ''}
+        </td>
+        <td style="text-align: center;">
+          <span style="font-size:0.9rem; font-weight:600; color:var(--text-dark);">${timeFormatted}</span>
+          <div style="font-size:0.75rem; color:var(--text-muted);">${formatTime(item.timeSeconds)}</div>
+        </td>
+        <td style="text-align: center;">
+          <button type="button" class="btn-delete-row" data-id="${safeDocId}" data-name="${safeName}" data-score="${item.score}" data-time="${item.timeSeconds}" data-timestamp="${item.timestamp || ''}" title="Excluir este resultado (requer senha do professor)">
+            🗑️
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // Ativa os botões de exclusão na tabela de partidas recentes
+  recentTbody.querySelectorAll('.btn-delete-row').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const docId = btn.getAttribute('data-id');
