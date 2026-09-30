@@ -579,6 +579,11 @@
                                 <span>💡</span>
                                 <span>Tela Acesa</span>
                             </button>
+                            <button id="btn-view-history" class="btn-projection-action"
+                                title="Consultar Histórico de Rankings Salvos">
+                                <span>📜</span>
+                                <span>Histórico</span>
+                            </button>
                             <button id="btn-reset-rankings" class="btn-projection-action btn-danger-action"
                                 title="Zerar todas as tabelas de classificação">
                                 <span>🗑️</span>
@@ -587,7 +592,6 @@
                             <button id="btn-fullscreen-toggle" class="btn-projection-action"
                                 title="Ativar Tela Cheia para Projetor">
                                 <span id="fullscreen-icon">⛶</span>
-                              
                             </button>
                             <button id="btn-ranking-back" class="btn-projection-action btn-back-action">
                                 ← Voltar
@@ -726,14 +730,15 @@
             <form id="form-reset-rankings" onsubmit="return false;">
                 <div class="arcade-modal-body">
                     <p class="arcade-modal-warning">
-                        ⚠️ <strong>Atenção:</strong> Esta ação irá apagar definitivamente todos os registros do <strong>Ranking Individual</strong> e do <strong>Ranking dos Duelos</strong> da Mostra.
+                        ⚠️ <strong>Atenção:</strong> Esta ação irá zerar a tabela atual da Mostra.<br>
+                        💾 <strong>Cópia de Segurança:</strong> Uma cópia completa com todos os participantes desta rodada será salva automaticamente no <strong>Histórico de Rankings</strong> para consulta posterior!
                     </p>
                     <div class="form-group arcade-form-group" style="margin-top: 16px; margin-bottom: 6px;">
                         <label for="input-reset-password">DIGITE A SENHA DO PROFESSOR:</label>
                         <input type="password" id="input-reset-password" class="form-control arcade-input"
                             placeholder="Digite a senha..." autocomplete="current-password" required>
                         <div id="reset-password-error" class="arcade-error-msg" style="display: none;">
-                            ❌ Senha incorreta! Digite a senha correta para autorizar.
+                            ❌ Senha incorreta! Digite a senha correta (prof123) para autorizar.
                         </div>
                     </div>
                 </div>
@@ -746,6 +751,30 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal do Histórico de Rankings Arquivados -->
+    <div id="modal-rankings-history" class="arcade-modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-history-title">
+        <div class="arcade-modal-card" style="max-width: 720px;">
+            <div class="arcade-modal-header" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-bottom-color: #bfdbfe;">
+                <div class="arcade-modal-icon" style="background: #dbeafe; border-color: #93c5fd; color: #1e40af;">📜</div>
+                <div>
+                    <h3 id="modal-history-title" class="arcade-modal-title" style="color: #1e3a8a;">Histórico de Rankings Salvos</h3>
+                    <p class="arcade-modal-sub">Edições e rodadas arquivadas automaticamente ao zerar a tabela</p>
+                </div>
+                <button type="button" id="btn-modal-history-close" class="arcade-modal-close" aria-label="Fechar modal">&times;</button>
+            </div>
+            <div class="arcade-modal-body" style="max-height: 65vh; overflow-y: auto; padding: 18px 20px;">
+                <div id="rankings-history-content">
+                    <!-- Preenchido via Javascript -->
+                </div>
+            </div>
+            <div class="arcade-modal-actions">
+                <button type="button" id="btn-close-history" class="btn-secondary arcade-btn-secondary" style="padding: 10px 22px;">
+                    Fechar Histórico
+                </button>
+            </div>
         </div>
     </div>
 

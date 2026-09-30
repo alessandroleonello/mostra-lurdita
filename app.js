@@ -993,9 +993,6 @@ function selectOption(optIndex, buttonEl) {
     if (hint) {
       hint.innerHTML = `
         <span style="color: #059669; font-weight: 700; font-size: 0.88rem;">✅ RESPOSTA CORRETA! (+${gained} PTS)</span>
-        <span style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-top: 3px;">
-          Avançando para a próxima em <strong id="countdown-num">3</strong>s...
-        </span>
       `;
     }
   } else {
@@ -1018,60 +1015,33 @@ function selectOption(optIndex, buttonEl) {
         <span style="display: block; font-size: 0.82rem; color: var(--primary-navy); margin-top: 2px;">
           A resposta certa era: <strong>(${correctLetter}) ${escapeHtml(correctText)}</strong>
         </span>
-        <span style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-top: 3px;">
-          Avançando para a próxima em <strong id="countdown-num">3</strong>s...
-        </span>
       `;
     }
   }
 
   updateArcadeHUD();
 
-  // Inicia animação da barra de 3 segundos
-  if (barWrap && barFill) {
-    barWrap.style.display = 'block';
-    barFill.style.animation = 'none';
-    barFill.offsetHeight; // reflow para reiniciar animação
-    barFill.style.animation = 'countdownShrink 3s linear forwards';
-  }
-
-  // Contagem regressiva de 3 segundos no texto
-  let secondsRemaining = 3;
+  // Remove qualquer barra de contagem ou intervalo anterior
+  if (barWrap) barWrap.style.display = 'none';
   if (gameState.quiz.countdownInterval) {
     clearInterval(gameState.quiz.countdownInterval);
+    gameState.quiz.countdownInterval = null;
   }
 
-  gameState.quiz.countdownInterval = setInterval(() => {
-    secondsRemaining--;
-    const currentCountdownEl = document.getElementById('countdown-num');
-    if (currentCountdownEl) {
-      currentCountdownEl.textContent = secondsRemaining > 0 ? secondsRemaining : '1';
-    }
-    if (secondsRemaining <= 0) {
-      clearInterval(gameState.quiz.countdownInterval);
-      gameState.quiz.countdownInterval = null;
-    }
-  }, 1000);
-
-  // Avança automaticamente após 3 segundos
+  // Avança imediatamente para a próxima questão (sem delay de espera)
   if (gameState.quiz.autoAdvanceTimer) {
     clearTimeout(gameState.quiz.autoAdvanceTimer);
   }
 
+  // Micro-transição de 250ms para registro visual do clique e áudio sem delay incômodo
   gameState.quiz.autoAdvanceTimer = setTimeout(() => {
-    if (gameState.quiz.countdownInterval) {
-      clearInterval(gameState.quiz.countdownInterval);
-      gameState.quiz.countdownInterval = null;
-    }
-    if (barWrap) barWrap.style.display = 'none';
-
     if (gameState.quiz.currentIndex + 1 < gameState.quiz.questions.length) {
       gameState.quiz.currentIndex++;
       renderCurrentQuestion();
     } else {
       finishQuiz();
     }
-  }, 3000);
+  }, 250);
 }
 
 function handleNextQuestion() {
@@ -1293,8 +1263,91 @@ function getLocalDuelRankings() {
   }
 }
 
-// Zera todas as tabelas de classificação (Solo e Duelos)
+// Obtém histórico de rankings arquivados do LocalStorage
+function getLocalRankingsHistory() {
+  try {
+    const raw = localStorage.getItem('lurdita_historico_rankings');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+  } catch (e) {
+    console.warn("Erro ao ler lurdita_historico_rankings do LocalStorage:", e);
+  }
+  return [];
+}
+
+// Busca histórico completo de rankings (Firestore e LocalStorage)
+async function fetchRankingsHistory() {
+  let list = [];
+  if (isFirebaseConnected && db) {
+    try {
+      const snap = await db.collection("historico_rankings").orderBy("timestamp", "desc").get();
+      snap.forEach(doc => {
+        const item = doc.data() || {};
+        item.docId = doc.id;
+        list.push(item);
+      });
+      if (list.length > 0) return list;
+    } catch (e) {
+      console.warn("Aviso ao buscar historico_rankings no Firestore:", e);
+    }
+  }
+  return getLocalRankingsHistory();
+}
+
+// Zera todas as tabelas de classificação (Solo e Duelos), arquivando antes uma cópia no Histórico
 async function resetAllRankings() {
+  // 0. Captura snapshot completo dos rankings atuais para arquivar no Histórico antes de zerar
+  try {
+    const currentScores = await fetchSoloRankings();
+    if (currentScores && currentScores.length > 0) {
+      const now = new Date();
+      const dateFormatted = now.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }) + ' às ' + now.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const champion = currentScores[0];
+      const championText = champion
+        ? `${champion.name} (${champion.school || 'PEI Lurdita'}) — ${champion.score}/10 (${champion.arcadeScore || 0} pts)`
+        : 'Sem registros';
+
+      const archiveRecord = {
+        id: 'hist_' + Date.now(),
+        timestamp: now.toISOString(),
+        dateFormatted: dateFormatted,
+        totalParticipants: currentScores.length,
+        champion: championText,
+        rankings: currentScores
+      };
+
+      // 0.1 Salva snapshot no Firestore se conectado
+      if (isFirebaseConnected && db) {
+        try {
+          await db.collection("historico_rankings").add(archiveRecord);
+        } catch (errSnap) {
+          console.warn("Aviso ao salvar snapshot no Firestore:", errSnap);
+        }
+      }
+
+      // 0.2 Salva snapshot no LocalStorage
+      try {
+        const historyList = getLocalRankingsHistory();
+        historyList.unshift(archiveRecord);
+        localStorage.setItem('lurdita_historico_rankings', JSON.stringify(historyList));
+      } catch (errLocal) {
+        console.error("Erro ao salvar snapshot no LocalStorage:", errLocal);
+      }
+    }
+  } catch (errArchive) {
+    console.error("Erro ao arquivar ranking antes de zerar:", errArchive);
+  }
+
   // 1. Limpa o LocalStorage (persistindo array vazio)
   try {
     localStorage.setItem('lurdita_ranking_solo', JSON.stringify([]));
@@ -1422,7 +1475,7 @@ async function handleConfirmReset(e) {
 
     sounds.coin();
     closeResetRankingsModal();
-    showToastNotice("Tabelas de classificação zeradas com sucesso!", "🗑️");
+    showToastNotice("Tabelas zeradas! Cópia salva no Histórico de Rankings.", "📜");
   } catch (err) {
     console.error("Erro ao zerar tabelas:", err);
     alert("Ocorreu um erro ao zerar as tabelas. Tente novamente.");
@@ -1430,6 +1483,167 @@ async function handleConfirmReset(e) {
       confirmBtn.disabled = false;
       confirmBtn.innerHTML = '<span>🗑️</span> Confirmar e Zerar';
     }
+  }
+}
+
+// Funções do Modal de Histórico de Rankings Arquivados
+async function openRankingsHistoryModal() {
+  sounds.click();
+  const modal = document.getElementById('modal-rankings-history');
+  const container = document.getElementById('rankings-history-content');
+  if (!modal || !container) return;
+
+  modal.style.display = 'flex';
+  container.innerHTML = `
+    <div style="text-align: center; padding: 28px 16px; color: var(--text-muted); font-size: 0.95rem;">
+      <span style="display: block; font-size: 2rem; margin-bottom: 8px;">⏳</span>
+      Carregando histórico de rankings arquivados...
+    </div>
+  `;
+
+  try {
+    const historyList = await fetchRankingsHistory();
+    renderRankingsHistoryList(historyList);
+  } catch (err) {
+    console.error("Erro ao carregar histórico:", err);
+    container.innerHTML = `
+      <div class="history-empty-state">
+        <span style="font-size: 2rem;">⚠️</span>
+        <p>Não foi possível carregar o histórico de rankings arquivados.</p>
+      </div>
+    `;
+  }
+}
+
+function closeRankingsHistoryModal() {
+  sounds.click();
+  const modal = document.getElementById('modal-rankings-history');
+  if (modal) modal.style.display = 'none';
+}
+
+function renderRankingsHistoryList(historyList) {
+  const container = document.getElementById('rankings-history-content');
+  if (!container) return;
+
+  if (!historyList || historyList.length === 0) {
+    container.innerHTML = `
+      <div class="history-empty-state" style="text-align: center; padding: 32px 20px; background: #f8fafc; border-radius: 12px; border: 2px dashed #cbd5e1;">
+        <span style="font-size: 2.4rem; display: block; margin-bottom: 12px;">📜</span>
+        <h4 style="font-family: var(--font-heading); font-size: 1.15rem; color: var(--primary-navy); margin-bottom: 6px;">
+          Nenhum histórico arquivado ainda
+        </h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 480px; margin: 0 auto; line-height: 1.5;">
+          Toda vez que o professor clicar em <strong>"Zerar Tabelas"</strong>, uma cópia completa de segurança com todos os estudantes e pontuações da rodada será arquivada aqui automaticamente para consulta!
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `<div class="history-cards-container" style="display: flex; flex-direction: column; gap: 14px;">`;
+
+  historyList.forEach((entry, idx) => {
+    const roundNumber = historyList.length - idx;
+    const rankings = entry.rankings || [];
+    const dateFormatted = entry.dateFormatted || (entry.timestamp ? new Date(entry.timestamp).toLocaleString('pt-BR') : 'Data não informada');
+    const totalParticipants = entry.totalParticipants || rankings.length;
+    const champion = entry.champion || (rankings[0] ? `${rankings[0].name} (${rankings[0].score}/10)` : 'Nenhum');
+    const roundId = entry.id || `round_${idx}`;
+
+    html += `
+      <div class="history-round-card">
+        <div class="history-round-header">
+          <div>
+            <div class="history-round-badge">RODADA ARQUIVADA #${roundNumber}</div>
+            <h4 class="history-round-title">🗓️ ${escapeHtml(dateFormatted)}</h4>
+          </div>
+          <div class="history-header-meta">
+            <span class="history-pill-students">👥 ${totalParticipants} estudantes</span>
+          </div>
+        </div>
+
+        <div class="history-champion-box">
+          <span class="history-champ-icon">🥇</span>
+          <div style="flex: 1;">
+            <strong style="color: #b45309; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.6px; display: block;">Campeão(ã) da Rodada:</strong>
+            <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary-navy);">${escapeHtml(champion)}</span>
+          </div>
+        </div>
+
+        <div class="history-actions-row">
+          <button type="button" class="btn-history-toggle" onclick="toggleHistoryRoundDetails('${roundId}')">
+            <span id="hist-toggle-icon-${roundId}">👁️</span>
+            <span id="hist-toggle-text-${roundId}">Ver Classificação Completa (${rankings.length})</span>
+          </button>
+        </div>
+
+        <div id="hist-details-${roundId}" class="history-details-table-wrap" style="display: none;">
+          <div class="table-responsive" style="max-height: 260px; overflow-y: auto;">
+            <table class="ranking-table projection-table history-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center;">Pos.</th>
+                  <th>Estudante</th>
+                  <th style="text-align: center; width: 125px;">Acertos / Pts</th>
+                  <th style="text-align: center; width: 85px;">Tempo</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rankings.map((p, pIdx) => {
+                  const pos = pIdx + 1;
+                  const posClass = pos === 1 ? 'rank-1' : pos === 2 ? 'rank-2' : pos === 3 ? 'rank-3' : 'rank-other';
+                  const medal = pos === 1 ? '🥇 ' : pos === 2 ? '🥈 ' : pos === 3 ? '🥉 ' : '';
+                  const timeFormatted = formatTime(p.timeSeconds || 0);
+                  const gradeInfo = p.grade ? `<span class="badge-grade" style="font-size: 0.72rem; padding: 2px 6px;">${escapeHtml(p.grade)}</span>` : '';
+                  return `
+                    <tr>
+                      <td style="text-align: center;"><span class="rank-badge ${posClass}">${pos}º</span></td>
+                      <td>
+                        <div class="player-cell">
+                          <span class="player-name">${medal}${escapeHtml(p.name)}</span>
+                          <div class="player-school">
+                            <span>${escapeHtml(p.school || 'PEI Lurdita')}</span>
+                            ${gradeInfo}
+                          </div>
+                        </div>
+                      </td>
+                      <td style="text-align: center;">
+                        <strong style="color: var(--primary-navy);">${p.score}/10</strong>
+                        <span style="display: block; font-size: 0.76rem; color: var(--text-muted); font-family: var(--font-pixel);">${p.arcadeScore || 0} PTS</span>
+                      </td>
+                      <td style="text-align: center; font-family: var(--font-pixel); font-size: 0.82rem; color: var(--text-muted);">${timeFormatted}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// Expande ou recolhe a tabela detalhada de uma rodada arquivada
+function toggleHistoryRoundDetails(id) {
+  sounds.click();
+  const detailsEl = document.getElementById(`hist-details-${id}`);
+  const iconEl = document.getElementById(`hist-toggle-icon-${id}`);
+  const textEl = document.getElementById(`hist-toggle-text-${id}`);
+  if (!detailsEl) return;
+
+  const isHidden = detailsEl.style.display === 'none';
+  if (isHidden) {
+    detailsEl.style.display = 'block';
+    if (iconEl) iconEl.textContent = '▲';
+    if (textEl) textEl.textContent = 'Ocultar Classificação';
+  } else {
+    detailsEl.style.display = 'none';
+    if (iconEl) iconEl.textContent = '👁️';
+    if (textEl) textEl.textContent = 'Ver Classificação Completa';
   }
 }
 
@@ -2963,9 +3177,39 @@ document.addEventListener('DOMContentLoaded', () => {
     formDeleteSingle.addEventListener('submit', handleConfirmDeleteSingle);
   }
 
+  // Botão e Eventos do Modal de Histórico de Rankings
+  const btnViewHistory = document.getElementById('btn-view-history');
+  if (btnViewHistory) {
+    btnViewHistory.addEventListener('click', openRankingsHistoryModal);
+  }
+
+  const btnModalHistoryClose = document.getElementById('btn-modal-history-close');
+  if (btnModalHistoryClose) {
+    btnModalHistoryClose.addEventListener('click', closeRankingsHistoryModal);
+  }
+
+  const btnCloseHistory = document.getElementById('btn-close-history');
+  if (btnCloseHistory) {
+    btnCloseHistory.addEventListener('click', closeRankingsHistoryModal);
+  }
+
+  const modalHistory = document.getElementById('modal-rankings-history');
+  if (modalHistory) {
+    modalHistory.addEventListener('click', (e) => {
+      if (e.target === modalHistory) {
+        closeRankingsHistoryModal();
+      }
+    });
+  }
+
   // Tecla Escape para fechar modal ou F para alternar tela cheia a qualquer momento
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      const modalHist = document.getElementById('modal-rankings-history');
+      if (modalHist && modalHist.style.display !== 'none') {
+        closeRankingsHistoryModal();
+        return;
+      }
       const modal = document.getElementById('modal-reset-rankings');
       if (modal && modal.style.display !== 'none') {
         closeResetRankingsModal();
