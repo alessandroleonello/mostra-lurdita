@@ -165,7 +165,7 @@
                             <span class="mode-badge pixel-badge" style="background:#10b981; color:#fff;">JOIN</span>
                             <span class="mode-icon">🎯</span>
                             <h3>ENTRAR EM UM DUELO</h3>
-                            <p>Digite o código de 4 dígitos gerado pelo seu colega para desafiá-lo!</p>
+                            <p>Veja a lista de colegas que criaram salas e desafie com apenas 1 clique!</p>
                             <div class="arcade-select-indicator">▶ PRESS TO JOIN</div>
                         </div>
                     </div>
@@ -173,6 +173,51 @@
                     <button id="btn-back-from-duel-mode" class="btn-back arcade-back-btn">
                         ◀ Voltar para Escolha de Modo
                     </button>
+                </div>
+            </section>
+
+            <!-- =================================================================
+           TELA 2.6: SALAS DE DUELO DISPONÍVEIS (LISTA AO VIVO DE OPONENTES)
+           ================================================================= -->
+            <section id="screen-duel-rooms" class="screen">
+                <div class="main-card arcade-cabinet-card" style="max-width: 720px;">
+                    <div class="hero-badge arcade-badge-blink"
+                        style="background:#dcfce7; color:#15803d; border-color:#86efac;">
+                        <span>⚔️</span> ARENAS ABERTAS
+                    </div>
+
+                    <h2 class="hero-title arcade-title-neon" style="font-size: 1.9rem; margin-bottom: 6px;">
+                        SALAS DE DUELO DISPONÍVEIS
+                    </h2>
+                    <p class="hero-description" style="margin-bottom: 18px;">
+                        Toque no colega que você quer desafiar agora para entrar no duelo:
+                    </p>
+
+                    <!-- Barra de Ações Rápidas da Lista -->
+                    <div class="duel-rooms-header-actions">
+                        <button type="button" id="btn-refresh-rooms" class="btn-secondary arcade-btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+                            <span>🔄</span> Atualizar Lista
+                        </button>
+                        <span id="duel-rooms-count" class="pixel-text" style="color: var(--text-muted); font-size: 0.85rem;">
+                            Buscando salas...
+                        </span>
+                    </div>
+
+                    <!-- Container da Lista de Salas Dinâmicas -->
+                    <div id="duel-rooms-container" class="duel-rooms-list" style="margin: 18px 0; min-height: 180px;">
+                        <!-- Inserido dinamicamente via JavaScript -->
+                    </div>
+
+                    <!-- Rodapé com opção manual de código e botão voltar -->
+                    <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%;">
+                        <button type="button" id="btn-toggle-manual-code" class="arcade-link-btn" style="background:none; border:none; color:var(--primary-navy); cursor:pointer; font-size:0.92rem; text-decoration:underline; font-weight:600;">
+                            ⌨️ Prefere digitar o código de 4 dígitos manualmente? Clique aqui
+                        </button>
+
+                        <button id="btn-back-from-duel-rooms" class="btn-back arcade-back-btn" style="width: 100%;">
+                            ◀ Voltar
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -316,10 +361,19 @@
                         </div>
                     </div>
 
+                    <div id="lobby-waiting-actions" class="lobby-waiting-box">
+                        <span class="lobby-waiting-spin">⏳</span>
+                        <span id="lobby-waiting-msg">Aguardando o 2º aluno entrar com o código de 4 dígitos...</span>
+                    </div>
+
                     <div id="lobby-ready-actions" style="display: none; width: 100%;">
+                        <div class="lobby-countdown-banner">
+                            <span class="lobby-countdown-icon">⚡</span>
+                            <span id="lobby-countdown-text" class="lobby-countdown-text">OPONENTES CONECTADOS! PREPAREM-SE!</span>
+                        </div>
                         <button id="btn-start-duel" class="btn-primary-large arcade-push-btn pulse-arcade"
                             style="width: 100%; max-width: 100%;">
-                            <span>🔥</span> READY... FIGHT! (INICIAR DUELO)
+                            <span>🔥</span> READY... FIGHT! (INICIAR DUELO AGORA)
                         </button>
                     </div>
 

@@ -701,6 +701,211 @@ select.form-control {
   border: 2px solid var(--accent-gold);
 }
 
+/* Caixa de Espera e Contagem Regressiva do Lobby */
+.lobby-waiting-box {
+  width: 100%;
+  padding: 16px 20px;
+  background: rgba(3, 105, 161, 0.08);
+  border: 2px dashed #0284c7;
+  border-radius: var(--radius-md);
+  color: var(--primary-navy);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: 1.05rem;
+}
+
+.lobby-waiting-spin {
+  font-size: 1.4rem;
+  display: inline-block;
+  animation: waitingSpin 2s infinite ease-in-out;
+}
+
+@keyframes waitingSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.15); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.lobby-countdown-banner {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border: 2px solid var(--accent-gold);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  text-align: center;
+  box-shadow: 0 4px 18px rgba(255, 193, 7, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  animation: pulseLobby 1.2s infinite alternate;
+}
+
+.lobby-countdown-icon {
+  font-size: 1.5rem;
+}
+
+.lobby-countdown-text {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffeb3b;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Lista de Salas de Duelo Disponíveis (Matchmaking Arcade)
+   ========================================================================== */
+.duel-rooms-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 4px 12px 4px;
+  border-bottom: 2px dashed rgba(19, 70, 116, 0.2);
+}
+
+.duel-rooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.duel-room-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 3px solid var(--primary-navy);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  box-shadow: 0 4px 12px rgba(19, 70, 116, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  text-align: left;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.duel-room-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--accent-gold);
+}
+
+.duel-room-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-gold);
+  box-shadow: 0 8px 24px rgba(19, 70, 116, 0.18);
+}
+
+.duel-room-card .room-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.duel-room-card .room-host-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #b45309;
+  letter-spacing: 0.5px;
+  font-family: var(--font-heading);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.duel-room-card .room-host-name {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary-navy);
+  line-height: 1.2;
+}
+
+.duel-room-card .room-host-meta {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.duel-room-card .room-code-tag {
+  display: inline-block;
+  font-family: monospace;
+  font-size: 0.8rem;
+  font-weight: 800;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+  padding: 2px 8px;
+  border-radius: 4px;
+  width: fit-content;
+  margin-top: 4px;
+}
+
+.btn-join-room-card {
+  padding: 12px 20px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: 2px solid #047857;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+}
+
+.btn-join-room-card:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.btn-join-room-card:active {
+  transform: scale(0.97);
+}
+
+.duel-empty-rooms {
+  background: var(--primary-subtle);
+  border: 2px dashed #93c5fd;
+  border-radius: var(--radius-md);
+  padding: 32px 20px;
+  text-align: center;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .duel-room-card {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 12px;
+  }
+  .duel-room-card .room-card-info {
+    align-items: center;
+  }
+  .btn-join-room-card {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
 /* HUD Arcade Superior do Quiz */
 .arcade-hud-bar {
   display: grid;
