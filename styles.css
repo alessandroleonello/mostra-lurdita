@@ -219,6 +219,25 @@ body {
   transform: translateY(-2px);
 }
 
+/* Botão e Indicador de Tela Sempre Acesa (Wake Lock) */
+.btn-wakelock.active {
+  background: #fef08a !important;
+  border-color: #ca8a04 !important;
+  color: #854d0e !important;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.45) !important;
+}
+
+.btn-wakelock.active #wakelock-icon,
+.btn-wakelock.active span:first-child {
+  display: inline-block;
+  animation: glowBulb 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes glowBulb {
+  0% { transform: scale(1); filter: drop-shadow(0 0 2px #facc15); }
+  100% { transform: scale(1.18); filter: drop-shadow(0 0 6px #eab308); }
+}
+
 /* Área de Conteúdo / Telas */
 .screen-container {
   flex: 1;

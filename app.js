@@ -2588,6 +2588,145 @@ function renderDuelRankingTable(list) {
   }).join('');
 }
 
+/* --------------------------------------------------------------------------
+   WAKE LOCK & ANTI-SLEEP (MANTÉM O TABLET SEMPRE ACESO DURANTE A EXPOSIÇÃO)
+   -------------------------------------------------------------------------- */
+let wakeLockSentinel = null;
+let isWakeLockEnabled = true; // Ativo por padrão para a exposição
+let wakeLockFallbackVideo = null;
+
+// Tenta obter o bloqueio de suspensão nativo da tela (Screen Wake Lock API)
+async function requestWakeLock(silent = false) {
+  if (!isWakeLockEnabled) return false;
+
+  // 1. Tenta API Nativa navigator.wakeLock
+  if ('wakeLock' in navigator) {
+    try {
+      if (wakeLockSentinel && !wakeLockSentinel.released) {
+        updateWakeLockUIState(true);
+        return true;
+      }
+      wakeLockSentinel = await navigator.wakeLock.request('screen');
+      updateWakeLockUIState(true);
+
+      wakeLockSentinel.addEventListener('release', () => {
+        wakeLockSentinel = null;
+        updateWakeLockUIState(false);
+        // Se ainda deveria estar ativo e a página está visível, tenta reativar
+        if (isWakeLockEnabled && document.visibilityState === 'visible') {
+          setTimeout(() => requestWakeLock(true), 800);
+        }
+      });
+
+      if (!silent) {
+        console.log("💡 Screen Wake Lock ativo com sucesso!");
+      }
+      return true;
+    } catch (err) {
+      console.warn("Screen Wake Lock API falhou ou foi rejeitada:", err);
+    }
+  }
+
+  // 2. Fallback: Vídeo em loop silencioso invisível (funciona em tablets mais antigos sem wakeLock)
+  enableWakeLockVideoFallback();
+  updateWakeLockUIState(true);
+  return true;
+}
+
+// Libera o bloqueio de suspensão
+async function releaseWakeLock() {
+  if (wakeLockSentinel) {
+    try {
+      await wakeLockSentinel.release();
+    } catch (e) {}
+    wakeLockSentinel = null;
+  }
+  disableWakeLockVideoFallback();
+  updateWakeLockUIState(false);
+}
+
+// Alterna manualmente o estado de Tela Sempre Acesa
+async function toggleWakeLock() {
+  sounds.click();
+  isWakeLockEnabled = !isWakeLockEnabled;
+
+  if (isWakeLockEnabled) {
+    await requestWakeLock();
+    showToastNotice("Modo Tela Acesa ativado! O tablet não irá desligar a tela.", "💡");
+  } else {
+    await releaseWakeLock();
+    showToastNotice("Modo Tela Acesa desativado. O tablet seguirá o tempo padrão.", "💤");
+  }
+}
+
+// Fallback de vídeo em loop imperceptível para manter a tela acordada
+function enableWakeLockVideoFallback() {
+  if (wakeLockFallbackVideo) {
+    wakeLockFallbackVideo.play().catch(() => {});
+    return;
+  }
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    if (ctx) ctx.fillRect(0, 0, 1, 1);
+
+    if (canvas.captureStream) {
+      const stream = canvas.captureStream(10);
+      wakeLockFallbackVideo = document.createElement('video');
+      wakeLockFallbackVideo.setAttribute('playsinline', '');
+      wakeLockFallbackVideo.setAttribute('muted', '');
+      wakeLockFallbackVideo.setAttribute('loop', '');
+      wakeLockFallbackVideo.muted = true;
+      wakeLockFallbackVideo.autoplay = true;
+      wakeLockFallbackVideo.srcObject = stream;
+      wakeLockFallbackVideo.style.cssText = 'position:fixed;width:1px;height:1px;top:0;left:0;opacity:0.001;pointer-events:none;z-index:-999;';
+      document.body.appendChild(wakeLockFallbackVideo);
+      wakeLockFallbackVideo.play().catch(() => {});
+    }
+  } catch (e) {
+    console.warn("Vídeo fallback Wake Lock:", e);
+  }
+}
+
+function disableWakeLockVideoFallback() {
+  if (wakeLockFallbackVideo) {
+    try {
+      wakeLockFallbackVideo.pause();
+      wakeLockFallbackVideo.remove();
+    } catch (e) {}
+    wakeLockFallbackVideo = null;
+  }
+}
+
+// Atualiza o visual dos botões no cabeçalho e na projeção
+function updateWakeLockUIState(isActive) {
+  const btn = document.getElementById('btn-wakelock-toggle');
+  const text = document.getElementById('wakelock-text');
+  const projBtn = document.getElementById('btn-wakelock-projection');
+
+  if (btn) {
+    if (isActive) {
+      btn.classList.add('active');
+      btn.title = "Tela Sempre Acesa ATIVA (O tablet não irá apagar)";
+      if (text) text.textContent = "ACESA";
+    } else {
+      btn.classList.remove('active');
+      btn.title = "Tela Sempre Acesa DESATIVADA (Clique para ativar)";
+      if (text) text.textContent = "APAGAR";
+    }
+  }
+
+  if (projBtn) {
+    if (isActive) {
+      projBtn.classList.add('active');
+    } else {
+      projBtn.classList.remove('active');
+    }
+  }
+}
+
 function toggleFullscreenProjection() {
   sounds.click();
   const isFs = document.body.classList.toggle('fullscreen-projection');
@@ -2600,6 +2739,10 @@ function toggleFullscreenProjection() {
     if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
     }
+    // Trava tela acesa ao entrar na projeção
+    isWakeLockEnabled = true;
+    requestWakeLock();
+    showToastNotice("Projeção em Tela Cheia ativada! Tela travada acesa.", "📽️");
   } else {
     if (fsIcon) fsIcon.textContent = '⛶';
     if (fsText) fsText.textContent = '';
@@ -2622,6 +2765,10 @@ function toggleGlobalFullscreen() {
     if (requestFs) {
       requestFs.call(docEl).catch(err => console.warn("Fullscreen request error:", err));
     }
+    // Ao entrar em tela cheia, garante que a tela do tablet fique sempre acesa
+    isWakeLockEnabled = true;
+    requestWakeLock();
+    showToastNotice("Tela Cheia ativada! Tablet travado aceso para a exposição.", "🖥️");
   } else {
     const exitFs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
     if (exitFs) {
@@ -2686,6 +2833,38 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sound-icon').textContent = isNowEnabled ? '🔊' : '🔇';
     btnSound.setAttribute('aria-pressed', !isNowEnabled);
   });
+
+  // Botão Tela Sempre Acesa (Wake Lock) no Cabeçalho
+  const btnWakeLock = document.getElementById('btn-wakelock-toggle');
+  if (btnWakeLock) {
+    btnWakeLock.addEventListener('click', toggleWakeLock);
+  }
+
+  // Botão Tela Sempre Acesa na Projeção dos Rankings
+  const btnWakeLockProj = document.getElementById('btn-wakelock-projection');
+  if (btnWakeLockProj) {
+    btnWakeLockProj.addEventListener('click', toggleWakeLock);
+  }
+
+  // Ativa automaticamente o Wake Lock na primeira interação do usuário (toque ou clique)
+  const userActivityKeepAwake = () => {
+    if (isWakeLockEnabled && (!wakeLockSentinel || wakeLockSentinel.released)) {
+      requestWakeLock(true);
+    }
+  };
+  document.addEventListener('touchstart', userActivityKeepAwake, { passive: true });
+  document.addEventListener('click', userActivityKeepAwake, { passive: true });
+  document.addEventListener('pointerdown', userActivityKeepAwake, { passive: true });
+
+  // Reativa o Wake Lock sempre que a janela ou aba volta a ficar visível
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && isWakeLockEnabled) {
+      requestWakeLock(true);
+    }
+  });
+
+  // Tenta ativar Wake Lock imediatamente na inicialização
+  setTimeout(() => requestWakeLock(true), 500);
 
   // Botão Tela Cheia Global no Cabeçalho (disponível a qualquer momento)
   const btnGlobalFullscreen = document.getElementById('btn-global-fullscreen');

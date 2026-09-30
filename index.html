@@ -45,10 +45,15 @@
                     <span id="sound-icon">🔊</span>
                     <span class="pixel-text">SFX</span>
                 </button>
+                <button id="btn-wakelock-toggle" class="btn-icon-sound arcade-sound-btn btn-wakelock active"
+                    title="Modo Tela Sempre Acesa (Não Apagar Tablet)" aria-label="Manter tela acesa">
+                    <span id="wakelock-icon">💡</span>
+                    <span class="pixel-text" id="wakelock-text">ACESA</span>
+                </button>
                 <button id="btn-global-fullscreen" class="btn-icon-sound arcade-sound-btn"
                     title="Alternar Tela Cheia" aria-label="Tela cheia">
                     <span id="global-fullscreen-icon">⛶</span>
-                    
+                    <span class="pixel-text" id="global-fullscreen-text">TELA CHEIA</span>
                 </button>
                 <button id="btn-open-ranking" class="btn-header-ranking arcade-btn-rank">
                     <span>🏆</span>
@@ -569,6 +574,11 @@
                         </div>
 
                         <div class="projection-controls">
+                            <button id="btn-wakelock-projection" class="btn-projection-action btn-wakelock active"
+                                title="Modo Tela Sempre Acesa (Não Apagar)">
+                                <span>💡</span>
+                                <span>Tela Acesa</span>
+                            </button>
                             <button id="btn-reset-rankings" class="btn-projection-action btn-danger-action"
                                 title="Zerar todas as tabelas de classificação">
                                 <span>🗑️</span>
